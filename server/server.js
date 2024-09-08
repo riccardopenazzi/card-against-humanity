@@ -1,3 +1,5 @@
+const debugMode = true;
+
 const serverPort = 9090;
 const expressPort = 9091;
 
@@ -7,6 +9,7 @@ const app = require("express")();
 const path = require("path");
 
 const { v4: uuidv4 } = require('uuid');
+const { Game } = require("./utils/Game");
 
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
@@ -25,6 +28,11 @@ const wsServer = new websocketServer({
 client that includes the connection (to send messages to the client) and some other infos
 */
 const connectedClients = {};
+
+/*
+"hashMap" to store all games, every game will be identified by a unique id and then I'll store an object for every game
+*/
+const games = {};
 
 wsServer.on("request", request => {
     const connection = request.accept(null, request.origin);
@@ -45,4 +53,44 @@ wsServer.on("request", request => {
 
     //send the payLoad to the client
     connection.send(JSON.stringify(payLoad));
+
+    connection.on("message", receivedMessage => {
+        const message = JSON.parse(receivedMessage.utf8Data);
+        debugMode && console.log(message);
+
+        switch(message.method) {
+            case 'create':
+                let gameId = createGame();
+                const payLoad = {
+                    "method": "create",
+                    "gameId": gameId,
+                };
+                sendMessage(message.clientId, payLoad);
+        }
+    });
+
 });
+
+
+function createGame() {
+    let gameId = generateUniqueGameId();
+    while (isGameIdExisting(gameId)) {
+        gameId = generateUniqueGameId();
+    }
+    games[gameId] = new Game(gameId);
+    return gameId;
+}
+
+function generateUniqueGameId() {
+    const randomNumber = Math.floor(Math.random() * 36 ** 6);
+    return randomNumber.toString(36).toUpperCase().padStart(6, '0');
+}
+
+function isGameIdExisting(gameId) {
+    return gameId in games;
+}
+
+function sendMessage(clientId, payLoad) {
+    const connection = connectedClients[clientId].connection;
+    connection.send(JSON.stringify(payLoad));
+}
