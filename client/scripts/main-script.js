@@ -23,3 +23,7 @@ webSocket.onmessage = receivedMessage => {
             break;
     }
 }
+
+export function setGameId(gameId) {
+    gameId = gameId;
+}

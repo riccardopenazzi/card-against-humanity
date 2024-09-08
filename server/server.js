@@ -13,6 +13,7 @@ const Game = require("./utils/Game");
 
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
+app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/waiting-room.html")));
 app.listen(expressPort, () => console.log("Express app listening on port ", expressPort));
 
 const websocketServer = require("websocket").server;
