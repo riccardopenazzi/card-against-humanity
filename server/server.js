@@ -9,7 +9,7 @@ const app = require("express")();
 const path = require("path");
 
 const { v4: uuidv4 } = require('uuid');
-const { Game } = require("./utils/Game");
+const Game = require("./utils/Game");
 
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));

@@ -31,3 +31,5 @@ class Game {
 
     //TODO manches management
 }
+
+module.exports = Game;

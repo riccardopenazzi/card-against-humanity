@@ -4,6 +4,7 @@ export let webSocket = new WebSocket("ws://localhost:" + webSocketPort);
 const debugMode = true;
 
 export let clientId = null;
+export let gameId = null;
 
 webSocket.onmessage = receivedMessage => {
     
