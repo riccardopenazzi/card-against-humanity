@@ -21,3 +21,5 @@ class Player {
         this._score++;
     }
 }
+
+module.exports = Player;

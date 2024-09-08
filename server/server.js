@@ -7,9 +7,10 @@ const express = require("express");
 const http = require("http");
 const app = require("express")();
 const path = require("path");
-
 const { v4: uuidv4 } = require('uuid');
+
 const Game = require("./utils/Game");
+const Player = require("./utils/Player");
 
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
@@ -67,11 +68,17 @@ wsServer.on("request", request => {
                     "gameId": gameId,
                 };
                 sendMessage(message.clientId, payLoad);
+                console.log(games);
+                break;
+            case 'join':
+                let player = new Player(message.clientId, message.username);
+                games[message.gameId].addPlayer(player);
+                debugMode && console.log('Player added, ', games[message.gameId].players);
+                break;
         }
     });
 
 });
-
 
 function createGame() {
     let gameId = generateUniqueGameId();
@@ -95,3 +102,5 @@ function sendMessage(clientId, payLoad) {
     const connection = connectedClients[clientId].connection;
     connection.send(JSON.stringify(payLoad));
 }
+
+module.exports = {games};

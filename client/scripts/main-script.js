@@ -3,9 +3,6 @@ export let webSocket = new WebSocket("ws://localhost:" + webSocketPort);
 
 const debugMode = true;
 
-export let clientId = null;
-export let gameId = null;
-
 webSocket.onmessage = receivedMessage => {
     
     //first of all parse the message received
@@ -14,16 +11,13 @@ webSocket.onmessage = receivedMessage => {
 
     switch (message.method) {
         case 'connect': 
-            clientId = message.clientId;
-            debugMode && console.log("clientId set successfully ", clientId);
+            sessionStorage.setItem('clientId', message.clientId);
+            debugMode && console.log("clientId set successfully ", sessionStorage.getItem('clientId'));
             break;
         case 'create':
-            gameId = message.gameId;
-            debugMode && console.log("Game create successfully ", gameId);
+            sessionStorage.setItem('gameId', message.gameId);
+            console.log(gameId);
+            debugMode && console.log("Game create successfully ", sessionStorage.getItem('gameId'));
             break;
     }
-}
-
-export function setGameId(gameId) {
-    gameId = gameId;
 }
