@@ -22,7 +22,7 @@ const httpServer = http.createServer();
 httpServer.listen(serverPort, () => console.log("Server listening on port ", serverPort));
 
 const wsServer = new websocketServer({
-    "httpServer": httpServer,
+	"httpServer": httpServer,
 });
 
 /*
@@ -37,75 +37,76 @@ const connectedClients = {};
 const games = {};
 
 wsServer.on("request", request => {
-    const connection = request.accept(null, request.origin);
-    connection.on("open", () => console.log("opened"));
+	const connection = request.accept(null, request.origin);
+	connection.on("open", () => console.log("opened"));
 	connection.on("close", () => console.log("closed"));
 
-    connection.on("message", receivedMessage => {
-        const message = JSON.parse(receivedMessage.utf8Data);
-        debugMode && console.log(message);
+	connection.on("message", receivedMessage => {
+		const message = JSON.parse(receivedMessage.utf8Data);
+		debugMode && console.log(message);
 
-        switch(message.method) {
-            case 'connect':
-                //unique id to identify the client that just connected
-                const clientId = uuidv4();
-                connectedClients[clientId] = {
-                    "connection": connection,
-                };
-                const connectPayload = {
-                    "method": "connect",
-                    "clientId": clientId,
-                };
-                sendMessage(clientId, connectPayload);
-                break;
-            case 'connect-again':
-                connectedClients[message.clientId].connection = connection;
-                break;
-            case 'create':
-                let gameId = createGame();
-                const createPayload = {
-                    "method": "create",
-                    "gameId": gameId,
-                };
-                sendMessage(message.clientId, createPayload);
-                break;
+		if (message.method === 'connect') {
+			//unique id to identify the client that just connected
+			const clientId = uuidv4();
+			connectedClients[clientId] = {
+				"connection": connection,
+			};
+			const connectPayload = {
+				"method": "connect",
+				"clientId": clientId,
+			};
+			sendMessage(clientId, connectPayload);
+		}
 
-            case 'join':
-                let player = new Player(message.clientId, message.username);
-                games[message.gameId].addPlayer(player);
-                debugMode && console.log('Player added, ', games[message.gameId].players);
-                games[message.gameId].players.forEach(client => {
-                    const updatePayload = {
-                        'method': 'update-players-list',
-                        'playersList': games[message.gameId].usernamesList,
-                    };
-                    sendMessage(client.clientId, updatePayload);
-                });
-                break;
-        }
-    });
+		if (message.method === 'connect-again') {
+			connectedClients[message.clientId].connection = connection;
+		}
+
+		if (message.method === 'create') {
+			let clientId = message.clientId;
+			let gameId = createGame(clientId);
+			const createPayload = {
+			   "method": "create",
+				"gameId": gameId,
+			};
+			sendMessage(message.clientId, createPayload);
+		}
+
+		if (message.method === 'join') {
+			let player = new Player(message.clientId, message.username);
+			games[message.gameId].addPlayer(player);
+			debugMode && console.log('Player added, ', games[message.gameId].players);
+			games[message.gameId].players.forEach(client => {
+				const updatePayload = {
+					'method': 'update-players-list',
+					'playersList': games[message.gameId].usernamesList,
+				};
+				sendMessage(client.clientId, updatePayload);
+			});
+		}
+	});
 
 });
 
-function createGame() {
-    let gameId = generateUniqueGameId();
-    while (isGameIdExisting(gameId)) {
-        gameId = generateUniqueGameId();
-    }
-    games[gameId] = new Game(gameId);
-    return gameId;
+function createGame(hostId) {
+	let gameId = generateUniqueGameId();
+	while (isGameIdExisting(gameId)) {
+		gameId = generateUniqueGameId();
+	}
+	games[gameId] = new Game(gameId, hostId);
+	return gameId;
 }
 
 function generateUniqueGameId() {
-    const randomNumber = Math.floor(Math.random() * 36 ** 6);
-    return randomNumber.toString(36).toUpperCase().padStart(6, '0');
+	const randomNumber = Math.floor(Math.random() * 36 ** 6);
+	return randomNumber.toString(36).toUpperCase().padStart(6, '0');
 }
 
 function isGameIdExisting(gameId) {
-    return gameId in games;
+	return gameId in games;
 }
 
 function sendMessage(clientId, payLoad) {
-    const connection = connectedClients[clientId].connection;
-    connection.send(JSON.stringify(payLoad));
+	const connection = connectedClients[clientId].connection;
+	connection.send(JSON.stringify(payLoad));
 }

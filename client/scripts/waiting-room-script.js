@@ -23,6 +23,7 @@ webSocket.onmessage = receivedMessage => {
         playersList.forEach(username => {
             let element = document.createElement('li');
             element.innerHTML = username;
+            element.classList.add('new-amsterdam-regular');
             playerUl.appendChild(element);
         })
     }
