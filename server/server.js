@@ -42,7 +42,7 @@ wsServer.on("request", request => {
 	connection.on("close", () => console.log("closed"));
 
     //unique id to identify the client that just connected
-    const clientId = uuidv4();
+    /* const clientId = uuidv4();
     connectedClients[clientId] = {
         "connection": connection,
     };
@@ -54,20 +54,32 @@ wsServer.on("request", request => {
     };
 
     //send the payLoad to the client
-    connection.send(JSON.stringify(payLoad));
+    connection.send(JSON.stringify(payLoad)); */
 
     connection.on("message", receivedMessage => {
         const message = JSON.parse(receivedMessage.utf8Data);
         debugMode && console.log(message);
 
         switch(message.method) {
+            case 'connect':
+                //unique id to identify the client that just connected
+                const clientId = uuidv4();
+                connectedClients[clientId] = {
+                    "connection": connection,
+                };
+                const connectPayload = {
+                    "method": "connect",
+                    "clientId": clientId,
+                };
+                sendMessage(clientId, connectPayload);
+                break;
             case 'create':
                 let gameId = createGame();
-                const payLoad = {
+                const createPayload = {
                     "method": "create",
                     "gameId": gameId,
                 };
-                sendMessage(message.clientId, payLoad);
+                sendMessage(message.clientId, createPayload);
                 console.log(games);
                 break;
             case 'join':
