@@ -4,10 +4,12 @@ class Game {
         this._gameId = gameId;
         this._players = [];
         this._manches = [];
+        this._usernamesList = [];
     }
 
     addPlayer(player) {
         this._players.push(player);
+        this._usernamesList.push(player.username);
         debugMode && console.log('Player added');
     }
 
@@ -16,8 +18,6 @@ class Game {
         if (playerIndex !== -1) {
             this._players.splice(playerIndex, 1);
             debugMode && console.log('Player removed');
-        } else {
-            console.log('Player not found');
         }
     }
 
@@ -27,6 +27,10 @@ class Game {
 
     get gameId() {
         return this._gameId;
+    }
+
+    get usernamesList() {
+        return this._usernamesList;
     }
 
     //TODO manches management

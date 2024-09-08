@@ -41,21 +41,6 @@ wsServer.on("request", request => {
     connection.on("open", () => console.log("opened"));
 	connection.on("close", () => console.log("closed"));
 
-    //unique id to identify the client that just connected
-    /* const clientId = uuidv4();
-    connectedClients[clientId] = {
-        "connection": connection,
-    };
-
-    //first payLoad sent to the client, it includes the unique clientId
-    const payLoad = {
-        "method": "connect",
-        "clientId": clientId,
-    };
-
-    //send the payLoad to the client
-    connection.send(JSON.stringify(payLoad)); */
-
     connection.on("message", receivedMessage => {
         const message = JSON.parse(receivedMessage.utf8Data);
         debugMode && console.log(message);
@@ -73,6 +58,9 @@ wsServer.on("request", request => {
                 };
                 sendMessage(clientId, connectPayload);
                 break;
+            case 'connect-again':
+                connectedClients[message.clientId].connection = connection;
+                break;
             case 'create':
                 let gameId = createGame();
                 const createPayload = {
@@ -80,12 +68,19 @@ wsServer.on("request", request => {
                     "gameId": gameId,
                 };
                 sendMessage(message.clientId, createPayload);
-                console.log(games);
                 break;
+
             case 'join':
                 let player = new Player(message.clientId, message.username);
                 games[message.gameId].addPlayer(player);
                 debugMode && console.log('Player added, ', games[message.gameId].players);
+                games[message.gameId].players.forEach(client => {
+                    const updatePayload = {
+                        'method': 'update-players-list',
+                        'playersList': games[message.gameId].usernamesList,
+                    };
+                    sendMessage(client.clientId, updatePayload);
+                });
                 break;
         }
     });
@@ -114,5 +109,3 @@ function sendMessage(clientId, payLoad) {
     const connection = connectedClients[clientId].connection;
     connection.send(JSON.stringify(payLoad));
 }
-
-module.exports = {games};

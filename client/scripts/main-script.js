@@ -5,7 +5,6 @@ const debugMode = true;
 
 webSocket.onopen = () => {
     const clientId = sessionStorage.getItem('clientId');
-    console.log(clientId);
     if (!clientId) {
         debugMode && console.log('Client id not set');
         const payLoad = {
@@ -13,7 +12,12 @@ webSocket.onopen = () => {
         }
         webSocket.send(JSON.stringify(payLoad));
     } else {
-        console.log('ClientId already set');
+        debugMode && console.log('ClientId already set');
+        const payLoad = {
+            "method": "connect-again",
+            "clientId": clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
     }
 }
 
@@ -30,7 +34,7 @@ webSocket.onmessage = receivedMessage => {
             break;
         case 'create':
             sessionStorage.setItem('gameId', message.gameId);
-            console.log(gameId);
+            console.log(sessionStorage.getItem('gameId'));
             debugMode && console.log("Game create successfully ", sessionStorage.getItem('gameId'));
             break;
     }
