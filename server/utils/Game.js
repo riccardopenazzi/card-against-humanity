@@ -2,28 +2,29 @@ const Manche = require("./Manche");
 
 let debugMode = true;
 class Game {
-	constructor(gameId, hostId) {
+	constructor(gameId, hostId, startCardNumber) {
 		this._gameId = gameId;
-		this._players = [];
+		this._players = {};
 		this._manches = [];
 		this._usernamesList = [];
 		this._hostId = hostId;
 		this._blackCards = [];
 		this._whiteCards = [];
+		this._startCardNumber = startCardNumber;
 	}
 
 	addPlayer(player) {
-		this._players.push(player);
+		this._players[player.clientId] = player;
 		this._usernamesList.push(player.username);
 		debugMode && console.log('Player added');   
 	}
 	
 	removePlayer(player) {
-		const playerIndex = this._players.indexOf(player);
+		/* const playerIndex = this._players.indexOf(player);
 		if (playerIndex !== -1) {
 			this._players.splice(playerIndex, 1);
 			debugMode && console.log('Player removed');
-		}
+		} */
 	}
 
 	get players() {
@@ -46,6 +47,9 @@ class Game {
 		this._blackCards = this.#initBlackDeck();
 		this._whiteCards = this.#initWhiteDeck();
 		this._manches.push(new Manche(this._blackCards.pop(), this._hostId));
+		Object.keys(this._players).forEach(player => {
+			this._players[player].initPlayerCards(this._whiteCards.splice(-this._startCardNumber));
+		});
 	}
 
 	get manches() {

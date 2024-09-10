@@ -52,26 +52,30 @@ wsServer.on("request", request => {
 			connectedClients[clientId] = {
 				"connection": connection,
 			};
-			const connectPayload = {
+			const payLoad = {
 				"method": "connect",
 				"clientId": clientId,
 			};
-			sendMessage(clientId, connectPayload);
+			sendMessage(clientId, payLoad);
 		}
 
 		if (message.method === 'connect-again') {
 			connectedClients[message.clientId].connection = connection;
+			const payLoad = {
+				'method': 'reconnected',
+			}
+			sendMessage(message.clientId, payLoad);
 		}
 
 		if (message.method === 'create') {
 			let clientId = message.clientId;
 			let gameId = createGame(clientId);
-			const createPayload = {
+			const payLoad = {
 				"method": "create",
 				"gameId": gameId,
 				"hostId": clientId,
 			};
-			sendMessage(message.clientId, createPayload);
+			sendMessage(message.clientId, payLoad);
 		}
 
 		if (message.method === 'join') {
@@ -94,6 +98,28 @@ wsServer.on("request", request => {
 			sendBroadcastMessage(gameId, payLoad);
 		}
 
+		if (message.method === 'start-manche') {
+			let clientId = message.clientId;
+			let gameId = message.gameId;
+			const payLoad = {
+				'method': 'start-manche',
+				'blackCard': games[gameId].currentManche.blackCard,
+				'mancheNumber': games[gameId].manches.length,
+			}
+			sendMessage(clientId, payLoad);
+		}
+
+		if (message.method === 'req-player-cards') {
+			let clientId = message.clientId;
+			let gameId = message.gameId;
+			let playerCards = games[gameId].players[clientId].playerCards;
+			const payLoad = {
+				'method': 'req-player-cards',
+				'playerCards': playerCards,
+			}
+			sendMessage(clientId, payLoad);
+		}
+
 	});
 
 });
@@ -103,7 +129,7 @@ function createGame(hostId) {
 	while (isGameIdExisting(gameId)) {
 		gameId = generateUniqueGameId();
 	}
-	games[gameId] = new Game(gameId, hostId);
+	games[gameId] = new Game(gameId, hostId, 3);
 	return gameId;
 }
 
@@ -117,8 +143,8 @@ function isGameIdExisting(gameId) {
 }
 
 function sendBroadcastMessage(gameId, payLoad) {
-	games[gameId].players.forEach(client => {
-		sendMessage(client.clientId, payLoad);
+	Object.keys(games[gameId].players).forEach(clientId => {
+		sendMessage(clientId, payLoad);
 	});
 }
 

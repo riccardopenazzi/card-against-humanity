@@ -3,6 +3,7 @@ class Player {
         this._clientId = clientId;
         this._username = username;
         this._score = 0;
+        this._playerCards = [];
     }
 
     get clientId() {
@@ -19,6 +20,14 @@ class Player {
 
     addPoint() {
         this._score++;
+    }
+
+    get playerCards() {
+        return this._playerCards;
+    }
+
+    initPlayerCards(playerCardsList) {
+       this._playerCards = playerCardsList;
     }
 }
 
