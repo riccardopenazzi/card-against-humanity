@@ -2,7 +2,7 @@ const Manche = require("./Manche");
 
 let debugMode = true;
 class Game {
-	constructor(gameId, hostId, startCardNumber) {
+	constructor(gameId, hostId, startCardNumber, targetScore) {
 		this._gameId = gameId;
 		this._players = {};
 		this._manches = [];
@@ -11,6 +11,8 @@ class Game {
 		this._blackCards = [];
 		this._whiteCards = [];
 		this._startCardNumber = startCardNumber;
+		this._gameState = 'waiting-players';
+		this._targetScore = targetScore;
 	}
 
 	addPlayer(player) {
@@ -43,6 +45,18 @@ class Game {
 		return this._hostId;
 	}
 
+	get manches() {
+		return this._manches;
+	}
+
+	get currentManche() {
+		return this._manches[this._manches.length - 1];
+	}
+
+	get gameState() {
+		return this._gameState;
+	}
+
 	initGame() {
 		this._blackCards = this.#initBlackDeck();
 		this._whiteCards = this.#initWhiteDeck();
@@ -50,14 +64,21 @@ class Game {
 		Object.keys(this._players).forEach(player => {
 			this._players[player].initPlayerCards(this._whiteCards.splice(-this._startCardNumber));
 		});
+		this._gameState = 'waiting-white-cards';
 	}
 
-	get manches() {
-		return this._manches;
+	checkMancheComplete() {
+		return this.currentManche.whiteCardsPlayed() == (Object.keys(this._players).length - 1);
 	}
 
-	get currentManche() {
-		return this._manches[this._manches.length - 1];
+	checkGameEnd() {
+		Object.entries(this._players).forEach(entry => {
+			const [id, player] = entry;
+			if (player.score == this._targetScore) {
+				return id;
+			}
+		});
+		return -1;
 	}
 
 	#initBlackDeck() {

@@ -21,6 +21,11 @@ class Manche {
 
     addCart(clientId, card) {
         this._playedWhiteCards[clientId] = card;
+        console.log(this._playedWhiteCards);
+    }
+
+    whiteCardsPlayed() {
+        return Object.keys(this._playedWhiteCards).length;
     }
 }
 

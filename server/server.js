@@ -16,6 +16,7 @@ app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
 app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/waiting-room.html")));
 app.get("/playing-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/playing-room.html")));
+app.get("/score", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/score.html")));
 app.listen(expressPort, () => console.log("Express app listening on port ", expressPort));
 
 const websocketServer = require("websocket").server;
@@ -105,6 +106,7 @@ wsServer.on("request", request => {
 				'method': 'start-manche',
 				'blackCard': games[gameId].currentManche.blackCard,
 				'mancheNumber': games[gameId].manches.length,
+				'masterId': games[gameId].currentManche.master,
 			}
 			sendMessage(clientId, payLoad);
 		}
@@ -124,11 +126,38 @@ wsServer.on("request", request => {
 			let clientId = message.clientId;
 			let gameId = message.gameId;
 			let cardText = message.cardText;
-			games[gameId].currentManche.addCart(clientId, cardText);
+			let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
+			let choosenCard = games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1)[0];
+			games[gameId].currentManche.addCart(clientId, choosenCard);
 			const payLoad = {
 				'method': 'play-card',
 			}
 			sendMessage(clientId, payLoad);
+			if (games[gameId].checkMancheComplete()) {
+				console.log('Fine');
+				const payLoad = {
+					'method': 'choosing-winner',
+					'playedCards': games[gameId].currentManche.playedWhiteCards,
+				}
+				sendBroadcastMessage(gameId, payLoad);
+			}
+		}
+
+		if (message.method === 'choosing-winner') {
+			let gameId = message.gameId;
+			let winner = message.winner;
+			games[gameId].players[winner].addPoint();
+			if (games[gameId].checkGameEnd() != -1) {
+				//someone has won
+				
+			} else {
+				//nobody has won
+				const payLoad = {
+					'method': 'watch-score',
+					'winner': games[gameId].players[winner].username,
+				}
+				sendBroadcastMessage(gameId, payLoad);
+			}
 		}
 
 	});

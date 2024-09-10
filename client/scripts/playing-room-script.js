@@ -16,7 +16,13 @@ webSocket.onmessage = receivedMessage => {
         console.log(message);
         document.getElementById('title').innerHTML += message.mancheNumber;
         document.getElementById('black-card').innerText = message.blackCard;
-        requestCardList();
+        const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
+        sessionStorage.setItem('master', isMaster);
+        if (isMaster) {
+            paintMessage('Aspetta che i giocatori scelgano la propria carta');
+        } else {
+            requestCardList();
+        }
     }
 
     if (message.method === 'req-player-cards') {
@@ -24,7 +30,20 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'play-card') {
-        paintWaitingPlayers();
+        paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+    }
+
+    if (message.method === 'choosing-winner') {
+        const isMaster = (sessionStorage.getItem('master') === 'true');
+        if (isMaster) {
+            fillMasterCardList(message.playedCards);
+        } else {
+            paintMessage('Il master sta scegliendo il vincitore');
+        }
+    }
+
+    if (message.method === 'watch-score') {
+        window.location.href = '/score';
     }
 }
 
@@ -47,28 +66,67 @@ function fillCardList(cardList) {
         cardDiv.classList.add('card');
         let textDiv = document.createElement('div');
         textDiv.innerText = card;
-        let btn = document.createElement('button');
-        btn.classList.add('btn-confirm-card');
-        btn.innerText = 'Conferma';
-        btn.addEventListener('click', e => {
-            const payLoad = {
-                'method': 'play-card',
-                'clientId': sessionStorage.getItem('clientId'),
-                'gameId': sessionStorage.getItem('gameId'),
-                'cardText': card,
-            }
-            webSocket.send(JSON.stringify(payLoad));
-        });
+        let confirmBtn = createConfirmBtn(card);
         cardDiv.appendChild(textDiv);
-        cardDiv.appendChild(btn);
+        cardDiv.appendChild(confirmBtn);
         cardListDiv.appendChild(cardDiv);
     });
 }
 
-function paintWaitingPlayers() {
+function createConfirmBtn(card) {
+    let btn = document.createElement('button');
+    btn.classList.add('btn-confirm-card');
+    btn.innerText = 'Conferma';
+    btn.addEventListener('click', e => {
+        const payLoad = {
+            'method': 'play-card',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+            'cardText': card,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+    return btn;
+}
+
+function fillMasterCardList(playedCards) {
+    let frame = document.getElementById('frame');
+    frame.innerHTML = '';
+    let cardListDiv = document.createElement('div');
+    cardListDiv.classList.add('scrollable-cards');
+    frame.appendChild(cardListDiv);
+    Object.entries(playedCards).forEach(entry => {
+        const [clientId, cardText] = entry;
+        let cardDiv = document.createElement('div');
+        cardDiv.classList.add('card');
+        let textDiv = document.createElement('div');
+        textDiv.innerText = cardText;
+        let chooseWinnerBtn = createChooseWinnermBtn(clientId);
+        cardDiv.appendChild(textDiv);
+        cardDiv.appendChild(chooseWinnerBtn);
+        cardListDiv.appendChild(cardDiv);
+    });
+}
+
+function createChooseWinnermBtn(clientId) {
+    let btn = document.createElement('button');
+    btn.classList.add('btn-winning-card');
+    btn.innerText = 'Scegli';
+    btn.addEventListener('click', e => {
+        const payLoad = {
+            'method': 'choosing-winner',
+            'gameId': sessionStorage.getItem('gameId'),
+            'winner': clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+    return btn
+}
+
+function paintMessage(message) {
     let frame = document.getElementById('frame');
     frame.innerHTML = '';
     let p = document.createElement('p');
-    p.innerHTML = 'Aspetta';
+    p.innerHTML = message;
     frame.appendChild(p);
 }

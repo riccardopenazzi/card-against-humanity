@@ -34,7 +34,8 @@
     flex-grow: 1; 
 }
 
-.btn-confirm-card {
+.btn-confirm-card,
+.btn-winning-card {
     position: absolute;
     bottom: 5px;
     left: 50%;
@@ -42,7 +43,14 @@
     padding: 5px;
     font-size: 14px;
     cursor: pointer;
-    background-color: #a3bce6;
     border-radius: 10px;
     min-width: 100px;
+}
+
+.btn-confirm-card {
+    background-color: #a3bce6;
+}
+
+.btn-winning-card {
+    background-color: #84e08c;
 }
