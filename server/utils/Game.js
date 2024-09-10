@@ -13,6 +13,7 @@ class Game {
 		this._startCardNumber = startCardNumber;
 		this._gameState = 'waiting-players';
 		this._targetScore = targetScore;
+		this._readyPlayersCounter = 0;
 	}
 
 	addPlayer(player) {
@@ -79,6 +80,34 @@ class Game {
 			}
 		});
 		return -1;
+	}
+
+	getScores() {
+		return Object.values(this._players).sort((a, b) => b.score - a.score).map(player => ({
+			username: player.username,
+			score: player.score,
+		}));
+	}
+
+	incReadyPlayers() {
+		this._readyPlayersCounter++;
+	}
+
+	resetReadyPlayers() {
+		this._readyPlayersCounter = 0;
+	}
+
+	checkAllPlayersReady() {
+		return this._readyPlayersCounter == Object.keys(this._players).length;
+	}
+
+	setMancheWinner(winnerId) {
+		this.currentManche.setWinner(winnerId);
+	}
+
+	newManche() {
+		this._manches.push(new Manche(this._blackCards.pop(), this.currentManche.winner));
+		this._readyPlayersCounter = 0;
 	}
 
 	#initBlackDeck() {

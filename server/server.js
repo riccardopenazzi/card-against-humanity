@@ -147,6 +147,7 @@ wsServer.on("request", request => {
 			let gameId = message.gameId;
 			let winner = message.winner;
 			games[gameId].players[winner].addPoint();
+			games[gameId].setMancheWinner(winner);
 			if (games[gameId].checkGameEnd() != -1) {
 				//someone has won
 				
@@ -155,6 +156,29 @@ wsServer.on("request", request => {
 				const payLoad = {
 					'method': 'watch-score',
 					'winner': games[gameId].players[winner].username,
+				}
+				sendBroadcastMessage(gameId, payLoad);
+			}
+		}
+
+		if (message.method === 'req-score') {
+			let clientId = message.clientId;
+			let gameId = message.gameId;
+			const payLoad = {
+				'method': 'req-score',
+				'score': games[gameId].getScores(),
+			}
+			sendMessage(clientId, payLoad);
+		}
+
+		if (message.method === 'new-manche') {
+			let gameId = message.gameId;
+			games[gameId].incReadyPlayers();
+			if (games[gameId].checkAllPlayersReady()) {
+				games[gameId].newManche();
+				const payLoad = {
+					'method': 'new-manche',
+
 				}
 				sendBroadcastMessage(gameId, payLoad);
 			}

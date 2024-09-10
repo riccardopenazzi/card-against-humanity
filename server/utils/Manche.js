@@ -5,6 +5,7 @@ class Manche {
         this._blackCard = blackCard;
         this._playedWhiteCards = {};
         this._master = master;
+        this._winner = '';
     }
 
     get blackCard() {
@@ -19,6 +20,10 @@ class Manche {
         return this._master;
     }
 
+    get winner() {
+        return this._winner;
+    }
+
     addCart(clientId, card) {
         this._playedWhiteCards[clientId] = card;
         console.log(this._playedWhiteCards);
@@ -26,6 +31,10 @@ class Manche {
 
     whiteCardsPlayed() {
         return Object.keys(this._playedWhiteCards).length;
+    }
+
+    setWinner(winnerId) {
+        this._winner = winnerId;
     }
 }
 
