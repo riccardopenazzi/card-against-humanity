@@ -34,7 +34,9 @@ webSocket.onmessage = receivedMessage => {
             break;
         case 'create':
             sessionStorage.setItem('gameId', message.gameId);
-            console.log(sessionStorage.getItem('gameId'));
+            sessionStorage.setItem('hostId', message.hostId);
+            debugMode && console.log(sessionStorage.getItem('gameId'));
+            debugMode && console.log(sessionStorage.getItem('hostId'));
             debugMode && console.log("Game create successfully ", sessionStorage.getItem('gameId'));
             break;
     }

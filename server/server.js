@@ -66,8 +66,9 @@ wsServer.on("request", request => {
 			let clientId = message.clientId;
 			let gameId = createGame(clientId);
 			const createPayload = {
-			   "method": "create",
+				"method": "create",
 				"gameId": gameId,
+				"hostId": clientId,
 			};
 			sendMessage(message.clientId, createPayload);
 		}

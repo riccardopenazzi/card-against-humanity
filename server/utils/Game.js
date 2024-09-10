@@ -5,7 +5,7 @@ class Game {
 		this._players = [];
 		this._manches = [];
 		this._usernamesList = [];
-		this._host = hostId;
+		this._hostId = hostId;
 	}
 
 	addPlayer(player) {
@@ -32,6 +32,10 @@ class Game {
 
 	get usernamesList() {
 		return this._usernamesList;
+	}
+
+	get hostId() {
+		return this._hostId;
 	}
 
 	//TODO manches management

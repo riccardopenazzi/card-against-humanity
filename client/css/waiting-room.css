@@ -1,8 +1,14 @@
-.btn-confirm-username{
+.btn-confirm-username {
     padding: 10px;
     border-radius: 8px;
 }
 
-ul > li{
+.btn-start-game {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #9ae3ae;
+}
+
+ul > li {
     list-style: none;
 }

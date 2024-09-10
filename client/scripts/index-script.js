@@ -11,7 +11,7 @@ document.getElementById('btn-create-game').addEventListener('click', event => {
 });
 
 document.getElementById('btn-join-game').addEventListener('click', event => {
-    let gameCode = document.getElementById('txt-game-code').value;
+    let gameCode = document.getElementById('txt-game-code').value.toUpperCase();
     sessionStorage.setItem('gameId', gameCode);
     window.location.href = "/waiting-room";
 });
