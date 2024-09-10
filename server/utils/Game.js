@@ -1,3 +1,5 @@
+const Manche = require("./Manche");
+
 let debugMode = true;
 class Game {
 	constructor(gameId, hostId) {
@@ -6,6 +8,8 @@ class Game {
 		this._manches = [];
 		this._usernamesList = [];
 		this._hostId = hostId;
+		this._blackCards = [];
+		this._whiteCards = [];
 	}
 
 	addPlayer(player) {
@@ -36,6 +40,28 @@ class Game {
 
 	get hostId() {
 		return this._hostId;
+	}
+
+	initGame() {
+		this._blackCards = this.#initBlackDeck();
+		this._whiteCards = this.#initWhiteDeck();
+		this._manches.push(new Manche(this._blackCards.pop(), this._hostId));
+	}
+
+	get manches() {
+		return this._manches;
+	}
+
+	get currentManche() {
+		return this._manches[this._manches.length - 1];
+	}
+
+	#initBlackDeck() {
+		console.log('Init black deck');
+	}
+
+	#initWhiteDeck() {
+		console.log('Init white deck');
 	}
 
 	//TODO manches management

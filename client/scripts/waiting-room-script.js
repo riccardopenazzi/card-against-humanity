@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .insertAdjacentElement('afterend', createDivBtnStart());
             
         document.getElementById('btn-start-game').addEventListener('click', e => {
-            //TODO send start game message
+            const payLoad = {
+                'method': 'start-game',
+                'gameId': sessionStorage.getItem('gameId'),
+            }
+            webSocket.send(JSON.stringify(payLoad));
         });
     }
 });

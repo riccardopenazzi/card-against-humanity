@@ -85,6 +85,12 @@ wsServer.on("request", request => {
 				sendMessage(client.clientId, updatePayload);
 			});
 		}
+
+		if (message.method === 'start-game') {
+			let gameId = message.gameId;
+			games[gameId].initGame();
+		}
+
 	});
 
 });
