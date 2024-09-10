@@ -44,6 +44,10 @@ webSocket.onmessage = receivedMessage => {
             playerUl.appendChild(element);
         })
     }
+
+    if (message.method === 'start-game') {
+        window.location.href = '/playing-room';
+    }
 }
 
 function createDivGameCode() {

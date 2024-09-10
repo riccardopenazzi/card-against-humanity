@@ -15,6 +15,7 @@ const Player = require("./utils/Player");
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
 app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/waiting-room.html")));
+app.get("/playing-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/playing-room.html")));
 app.listen(expressPort, () => console.log("Express app listening on port ", expressPort));
 
 const websocketServer = require("websocket").server;
@@ -77,18 +78,20 @@ wsServer.on("request", request => {
 			let player = new Player(message.clientId, message.username);
 			games[message.gameId].addPlayer(player);
 			debugMode && console.log('Player added, ', games[message.gameId].players);
-			games[message.gameId].players.forEach(client => {
-				const updatePayload = {
-					'method': 'update-players-list',
-					'playersList': games[message.gameId].usernamesList,
-				};
-				sendMessage(client.clientId, updatePayload);
-			});
+			const payLoad = {
+				'method': 'update-players-list',
+				'playersList': games[message.gameId].usernamesList,
+			};
+			sendBroadcastMessage(message.gameId, payLoad);
 		}
 
 		if (message.method === 'start-game') {
 			let gameId = message.gameId;
 			games[gameId].initGame();
+			const payLoad = {
+				'method': 'start-game',
+			}
+			sendBroadcastMessage(gameId, payLoad);
 		}
 
 	});
@@ -111,6 +114,12 @@ function generateUniqueGameId() {
 
 function isGameIdExisting(gameId) {
 	return gameId in games;
+}
+
+function sendBroadcastMessage(gameId, payLoad) {
+	games[gameId].players.forEach(client => {
+		sendMessage(client.clientId, payLoad);
+	});
 }
 
 function sendMessage(clientId, payLoad) {

@@ -57,11 +57,35 @@ class Game {
 	}
 
 	#initBlackDeck() {
-		console.log('Init black deck');
+		debugMode && console.log('Init black deck');
+		return [
+			"La nuova norma sulla sicurezza ora proibisce .............. sugli aerei.",
+			"È un peccato che i ragazzini al giorno d’oggi partecipino a .........................",
+			"Fra 1.000 anni, quando le banconote saranno soltanto un ricordo lontano, ............... sarà il nostro denaro.",
+			"La lega serie A ha vietato ................ poiché dà un vantaggio ingiusto ai giocatori.",
+			"Qual è il vizio segreto di Batman?",
+			"Il prossimo romanzo di J.K.Rowling. Harry Potter e la camera dei ......... .",
+			"Si, ho ucciso .......... Ti domandi come? .................",
+			"Prof. mi dispiace ma non ho potuto finire i compiti per colpa di ...............",
+			"E il premio Oscar per .............. va a ............................",
+			"Per il mio prossimo numero tirerò fuori ........... da ...........",
+		  ];
 	}
 
 	#initWhiteDeck() {
-		console.log('Init white deck');
+		debugMode && console.log('Init white deck');
+		return [
+			"Una maledizione di un Gitano.",
+			"Un momento di silenzio.",
+			"Un festival della salsiccia.",
+			"Un poliziotto onesto che non ha niente da perdere.",
+			"Carestia.",
+			"Batteri Mangia-Carne.",
+			"Serpenti volanti che fanno sesso.",
+			"Non fregarsene un cazzo del Terzo Mondo.",
+			"Sexting.",
+			"Benny Benassi.",
+		];
 	}
 
 	//TODO manches management
