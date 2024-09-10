@@ -120,6 +120,17 @@ wsServer.on("request", request => {
 			sendMessage(clientId, payLoad);
 		}
 
+		if (message.method === 'play-card') {
+			let clientId = message.clientId;
+			let gameId = message.gameId;
+			let cardText = message.cardText;
+			games[gameId].currentManche.addCart(clientId, cardText);
+			const payLoad = {
+				'method': 'play-card',
+			}
+			sendMessage(clientId, payLoad);
+		}
+
 	});
 
 });

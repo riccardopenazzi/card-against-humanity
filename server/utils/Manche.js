@@ -18,6 +18,10 @@ class Manche {
     get master() {
         return this._master;
     }
+
+    addCart(clientId, card) {
+        this._playedWhiteCards[clientId] = card;
+    }
 }
 
 module.exports = Manche;

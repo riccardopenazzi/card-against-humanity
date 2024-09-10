@@ -22,6 +22,10 @@ webSocket.onmessage = receivedMessage => {
     if (message.method === 'req-player-cards') {
         fillCardList(message.playerCards);
     }
+
+    if (message.method === 'play-card') {
+        paintWaitingPlayers();
+    }
 }
 
 function requestCardList() {
@@ -34,7 +38,10 @@ function requestCardList() {
 }
 
 function fillCardList(cardList) {
-    let divCardList = document.getElementById('card-list');
+    let frame = document.getElementById('frame');
+    let cardListDiv = document.createElement('div');
+    cardListDiv.classList.add('scrollable-cards');
+    frame.appendChild(cardListDiv);
     cardList.forEach((card, index) => {
         let cardDiv = document.createElement('div');
         cardDiv.classList.add('card');
@@ -44,10 +51,24 @@ function fillCardList(cardList) {
         btn.classList.add('btn-confirm-card');
         btn.innerText = 'Conferma';
         btn.addEventListener('click', e => {
-            console.log('Premuto');
+            const payLoad = {
+                'method': 'play-card',
+                'clientId': sessionStorage.getItem('clientId'),
+                'gameId': sessionStorage.getItem('gameId'),
+                'cardText': card,
+            }
+            webSocket.send(JSON.stringify(payLoad));
         });
         cardDiv.appendChild(textDiv);
         cardDiv.appendChild(btn);
-        divCardList.appendChild(cardDiv);
+        cardListDiv.appendChild(cardDiv);
     });
+}
+
+function paintWaitingPlayers() {
+    let frame = document.getElementById('frame');
+    frame.innerHTML = '';
+    let p = document.createElement('p');
+    p.innerHTML = 'Aspetta';
+    frame.appendChild(p);
 }
