@@ -76,7 +76,6 @@ class Game {
 
 	checkGameEnd() {
 		for (const player of Object.values(this._players)) {
-			console.log(player.score + ' ' + this._targetScore);
 			if (player.score === this._targetScore) {
 				return true;
 			}

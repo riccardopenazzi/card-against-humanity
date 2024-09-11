@@ -1,8 +1,15 @@
 import { webSocket } from "./main-script.js";
 
+let txtUsername = document.getElementById('txt-username');
+let title = document.getElementById('title');
+let btnConfirmUsername = document.getElementById('btn-confirm-username');
+let showError = document.getElementById('show-error');
+let gameStats = document.getElementById('game-stats');
+let playerUsername = document.getElementById('player-username');
+
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('hostId')) {
-        createDivGameCode(document.getElementById('title'));
+        createDivGameCode(title);
         createDivBtnStart();
         document.getElementById('btn-start-game').addEventListener('click', e => {
             const payLoad = {
@@ -12,26 +19,48 @@ document.addEventListener('DOMContentLoaded', () => {
             webSocket.send(JSON.stringify(payLoad));
         });
     }
+
+    txtUsername.addEventListener('input', inputEventAction);
 });
 
-document.getElementById('btn-confirm-username').addEventListener('click', event => {
+btnConfirmUsername.addEventListener('click', event => {
     event.preventDefault();
-    const username = document.getElementById('txt-username').value;
-    const gameId = sessionStorage.getItem('gameId');
-    const clientId = sessionStorage.getItem('clientId');
-    const payLoad = {
-        "method": "join",
-        "clientId": clientId,
-        "gameId": gameId,
-        "username": username,
-    };
-    webSocket.send(JSON.stringify(payLoad));
+    showError.innerText = '';
+    const username = txtUsername.value;
+    if (checkUsername(username)) {
+        const gameId = sessionStorage.getItem('gameId');
+        const clientId = sessionStorage.getItem('clientId');
+        const payLoad = {
+            "method": "join",
+            "clientId": clientId,
+            "gameId": gameId,
+            "username": username,
+        };
+        webSocket.send(JSON.stringify(payLoad));
+    } else {
+        showError.innerText = 'Username non valido, potrebbe contenere spazi o caratteri non consentiti. Utilizza solo lettere e numeri';
+    }
 });
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
+
     if (message.method === 'update-players-list') {
         let playersList = message.playersList;
+        if (sessionStorage.getItem('hostId')) {
+            document.getElementById('btn-start-game').disabled = false;
+            gameStats.innerText = 'Giocatori presenti ' + playersList.length;
+        }
+        if (message.clientId === sessionStorage.getItem('clientId')) {
+            playerUsername.innerText = 'Sei entrato come ' + message.username;
+            if (sessionStorage.getItem('hostId')) {
+                playerUsername.innerText += '\nQuando tutti i giocatori sono entrati avvia la partita'
+            } else {
+                playerUsername.innerText += '\n\nAttendi che l\'host avvii la partita'
+            }
+            txtUsername.removeEventListener('input', inputEventAction);
+            btnConfirmUsername.disabled = true;
+        }
         let playerUl = document.getElementById('players-list');
         playerUl.innerHTML = ''; //brutal way maybe to review but not now
         playersList.forEach(username => {
@@ -42,36 +71,48 @@ webSocket.onmessage = receivedMessage => {
         })
     }
 
+    if (message.method === 'duplicated-username') {
+        showError.innerText = 'Username già in uso, scegline uno diverso';
+    }
+
     if (message.method === 'start-game') {
         window.location.href = '/playing-room';
     }
 }
 
 function createDivGameCode(target) {    
-    const pDesc = document.createElement('p');
-    pDesc.classList.add('col-12', 'fst-italic');
-    pDesc.innerText = 'Condividilo con i tuoi amici per farli entrare';
-    target.insertAdjacentElement('afterend', pDesc);
-
     const pCode = document.createElement('p');
-    pCode.classList.add('col-12');
-    pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId');
+    pCode.classList.add('col-12', 'fst-italic');
+    pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId') + '\nCondividilo con i tuoi amici per farli entrare';
     target.insertAdjacentElement('afterend', pCode);
 
 }
 
 function createDivBtnStart() {
+    const mainRow =  document.getElementById('main-row');
     const divLeft = document.createElement('div');
     divLeft.classList.add('col-2', 'col-lg-4');
-    document.getElementById('main-row').appendChild(divLeft);
+    mainRow.appendChild(divLeft);
 
     const btn = document.createElement('button');
     btn.classList.add('new-amsterdam-regular', 'btn-start-game', 'mt-2', 'col-8', 'col-lg-4', 'w-60');
     btn.setAttribute('id', 'btn-start-game');
+    btn.setAttribute('disabled', 'true');
     btn.innerHTML = 'Avvia partita';
-    document.getElementById('main-row').appendChild(btn);
+    mainRow.appendChild(btn);
 
     const divRight = document.createElement('div');
     divLeft.classList.add('col-2', 'col-lg-4');
-    document.getElementById('main-row').appendChild(divRight);
+    mainRow.appendChild(divRight);
+}
+
+function checkUsername(username) {
+    const regex = /^[a-zA-Z0-9]+$/;
+    return regex.test(username);
+}
+
+function inputEventAction() {
+    txtUsername.value.trim().length > 0 ? 
+        btnConfirmUsername.disabled = false : 
+        btnConfirmUsername.disabled = true;
 }

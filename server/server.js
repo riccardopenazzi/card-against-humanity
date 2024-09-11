@@ -91,14 +91,26 @@ wsServer.on("request", request => {
 		}
 
 		if (message.method === 'join') {
-			let player = new Player(message.clientId, message.username);
-			games[message.gameId].addPlayer(player);
-			debugMode && console.log('Player added, ', games[message.gameId].players);
-			const payLoad = {
-				'method': 'update-players-list',
-				'playersList': games[message.gameId].usernamesList,
-			};
-			sendBroadcastMessage(message.gameId, payLoad);
+			let username = message.username;
+			let gameId = message.gameId;
+			let clientId = message.clientId;
+			if (checkUniqueUsername(gameId, username)) {
+				let player = new Player(clientId, username);
+				games[gameId].addPlayer(player);
+				debugMode && console.log('Player added, ', games[gameId].players);
+				const payLoad = {
+					'method': 'update-players-list',
+					'playersList': games[gameId].usernamesList,
+					'clientId': clientId,
+					'username': username,
+				};
+				sendBroadcastMessage(gameId, payLoad);
+			} else {
+				const payLoad = {
+					'method': 'duplicated-username',
+				}
+				sendMessage(clientId, payLoad);
+			}
 		}
 
 		if (message.method === 'start-game') {
@@ -240,4 +252,12 @@ function sendMessage(clientId, payLoad) {
 	connection.send(JSON.stringify(payLoad));
 }
 
-
+function checkUniqueUsername(gameId, username) {
+	for (const player of Object.values(games[gameId].players)) {
+		if (player.username === username) {
+			return false;
+		}
+	}
+	return true;
+	
+}
