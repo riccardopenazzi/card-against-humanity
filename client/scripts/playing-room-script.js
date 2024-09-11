@@ -1,5 +1,7 @@
 import { webSocket } from "./main-script.js";
 
+let problemCounter = 0;
+
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
 
@@ -19,7 +21,11 @@ webSocket.onmessage = receivedMessage => {
         const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
         sessionStorage.setItem('master', isMaster);
         if (isMaster) {
-            paintMessage('Aspetta che i giocatori scelgano la propria carta');
+            if (message.allPlayersCompleted) {
+                fillMasterCardList(message.playedCards);
+            } else {
+                paintMessage('Aspetta che i giocatori scelgano la propria carta');
+            }
         } else {
             requestCardList();
         }

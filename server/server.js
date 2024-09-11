@@ -125,11 +125,14 @@ wsServer.on("request", request => {
 		if (message.method === 'start-manche') {
 			let clientId = message.clientId;
 			let gameId = message.gameId;
+			let allPlayersCompleted = games[gameId].checkAllPlayersCompletedManche();
 			const payLoad = {
 				'method': 'start-manche',
 				'blackCard': games[gameId].currentManche.blackCard,
 				'mancheNumber': games[gameId].manches.length,
 				'masterId': games[gameId].currentManche.master,
+				'allPlayersCompleted': allPlayersCompleted,
+				'playedCards': games[gameId].currentManche.playedWhiteCards,
 			}
 			sendMessage(clientId, payLoad);
 		}
@@ -157,7 +160,6 @@ wsServer.on("request", request => {
 			}
 			sendMessage(clientId, payLoad);
 			if (games[gameId].checkMancheComplete()) {
-				console.log('Fine');
 				const payLoad = {
 					'method': 'choosing-winner',
 					'playedCards': games[gameId].currentManche.playedWhiteCards,

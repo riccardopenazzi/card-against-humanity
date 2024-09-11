@@ -74,6 +74,10 @@ class Game {
 		return this.currentManche.whiteCardsPlayed() == (Object.keys(this._players).length - 1);
 	}
 
+	checkAllPlayersCompletedManche() {
+		return this.currentManche.whiteCardsPlayed() == (Object.keys(this._players).length - 1);
+	}
+
 	checkGameEnd() {
 		for (const player of Object.values(this._players)) {
 			if (player.score === this._targetScore) {
