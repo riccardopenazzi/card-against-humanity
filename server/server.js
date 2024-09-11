@@ -1,31 +1,34 @@
 const debugMode = true;
 
-const serverPort = 9090;
-const expressPort = 9091;
-
 const express = require("express");
 const http = require("http");
-const app = require("express")();
 const path = require("path");
 const { v4: uuidv4 } = require('uuid');
+const websocketServer = require("websocket").server;
 
-const Game = require("./utils/Game");
-const Player = require("./utils/Player");
+const app = express();
+const serverPort = process.env.PORT || 9090;  // Usa una sola porta
+const server = http.createServer(app);  // Unico server HTTP per WebSocket e Express
 
+// Impostazione di Express
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
 app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/waiting-room.html")));
 app.get("/playing-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/playing-room.html")));
 app.get("/score", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/score.html")));
-app.listen(expressPort, () => console.log("Express app listening on port ", expressPort));
 
-const websocketServer = require("websocket").server;
-const httpServer = http.createServer();
-httpServer.listen(serverPort, () => console.log("Server listening on port ", serverPort));
+// Avvia il server
+server.listen(serverPort, () => console.log(`Server listening on port ${serverPort}`));
 
+// Inizializza WebSocket sullo stesso server HTTP
 const wsServer = new websocketServer({
-	"httpServer": httpServer,
+    "httpServer": server,  // Usa lo stesso server HTTP per WebSocket
 });
+
+// WebSocket handling...
+
+const Game = require("./utils/Game");
+const Player = require("./utils/Player");
 
 /*
 "hashMap" to store all clients connected, every client will be identified by a unique id and then I'll store an object for every

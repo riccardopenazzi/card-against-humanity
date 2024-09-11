@@ -1,5 +1,6 @@
-const webSocketPort = 9090;
-export let webSocket = new WebSocket("ws://localhost:" + webSocketPort);
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const webSocketPort = window.location.port;
+export let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
 
 const debugMode = true;
 
