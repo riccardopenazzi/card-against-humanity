@@ -208,7 +208,12 @@ wsServer.on("request", request => {
 				games[gameId].newManche();
 				const payLoad = {
 					'method': 'new-manche',
-
+				}
+				sendBroadcastMessage(gameId, payLoad);
+			} else {
+				const payLoad = {
+					'method': 'counter-ready-players',
+					'readyPlayers': games[gameId].readyPlayers,
 				}
 				sendBroadcastMessage(gameId, payLoad);
 			}

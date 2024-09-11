@@ -58,6 +58,10 @@ class Game {
 		return this._gameState;
 	}
 
+	get readyPlayers() {
+		return this._readyPlayersCounter;
+	}
+
 	initGame() {
 		this._blackCards = this.#initBlackDeck();
 		this._blackCards.sort(() => Math.random() - 0.5);

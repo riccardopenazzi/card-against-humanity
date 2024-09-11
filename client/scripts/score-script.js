@@ -13,7 +13,6 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'req-score') {
-        console.log(message.score);
         showScores(message.score);
     }
 
@@ -21,10 +20,14 @@ webSocket.onmessage = receivedMessage => {
         window.location.href = '/playing-room';
     }
 
+    if (message.method === 'counter-ready-players') {
+        document.getElementById('player-counter').innerText = '';
+        document.getElementById('player-counter').innerText = 'Giocatori pronti: ' + message.readyPlayers;
+    }
+
 }
 
 function showScores(scores) {
-    console.log(scores);
     let scoreRow = document.getElementById('score-row');
     scores.forEach(score => {
         let divUsername = document.createElement('div');
