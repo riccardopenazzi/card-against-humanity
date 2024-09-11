@@ -45,6 +45,10 @@ webSocket.onmessage = receivedMessage => {
     if (message.method === 'watch-score') {
         window.location.href = '/score';
     }
+
+    if (message.method === 'win') {
+        paintMessage(message.winner + ' ha vinto');
+    }
 }
 
 function requestCardList() {

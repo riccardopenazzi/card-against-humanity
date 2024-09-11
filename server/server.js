@@ -147,10 +147,15 @@ wsServer.on("request", request => {
 			let gameId = message.gameId;
 			let winner = message.winner;
 			games[gameId].players[winner].addPoint();
+			console.log(games[gameId].players[winner].score);
 			games[gameId].setMancheWinner(winner);
-			if (games[gameId].checkGameEnd() != -1) {
+			if (games[gameId].checkGameEnd()) {
 				//someone has won
-				
+				const payLoad = {
+					'method': 'win',
+					'winner': games[gameId].players[winner].username,
+				}
+				sendBroadcastMessage(gameId, payLoad);
 			} else {
 				//nobody has won
 				const payLoad = {
@@ -193,7 +198,7 @@ function createGame(hostId) {
 	while (isGameIdExisting(gameId)) {
 		gameId = generateUniqueGameId();
 	}
-	games[gameId] = new Game(gameId, hostId, 3);
+	games[gameId] = new Game(gameId, hostId, 7, 5);
 	return gameId;
 }
 

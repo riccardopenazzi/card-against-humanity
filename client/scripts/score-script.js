@@ -20,27 +20,28 @@ webSocket.onmessage = receivedMessage => {
     if (message.method === 'new-manche') {
         window.location.href = '/playing-room';
     }
+
 }
 
 function showScores(scores) {
     console.log(scores);
     let scoreRow = document.getElementById('score-row');
-    Object.keys(scores).forEach(entry => {
-        console.log('itero');
-        const [username, score] = entry;
-        console.log(username + ' ' +score)
+    scores.forEach(score => {
         let divUsername = document.createElement('div');
         divUsername.classList.add('col-6');
-        divUsername.innerText = username;
+        divUsername.innerText = score.username;
         let divScore = document.createElement('div');
         divScore.classList.add('col-6');
-        divScore.innerText = score;
+        divScore.innerText = score.score;
         scoreRow.appendChild(divUsername);
         scoreRow.appendChild(divScore);
-    })
 
+    });
+    let tmpDiv = document.createElement('div');
+    tmpDiv.classList.add('col-3');
+    scoreRow.appendChild(tmpDiv);
     let btn = document.createElement('button');
-    btn.classList.add('btn-confirm');
+    btn.classList.add('btn-confirm', 'col-6', 'mt-5');
     btn.innerText = 'Conferma';
     btn.addEventListener('click', e => {
         const payLoad = {

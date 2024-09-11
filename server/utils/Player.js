@@ -18,16 +18,21 @@ class Player {
         return this._score;
     }
 
+    
+    get playerCards() {
+        return this._playerCards;
+    }
+    
     addPoint() {
         this._score++;
     }
 
-    get playerCards() {
-        return this._playerCards;
-    }
-
     initPlayerCards(playerCardsList) {
        this._playerCards = playerCardsList;
+    }
+
+    addNewCart(cart) {
+        this._playerCards.push(cart);
     }
 }
 
