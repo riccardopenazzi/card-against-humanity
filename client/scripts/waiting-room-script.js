@@ -2,11 +2,8 @@ import { webSocket } from "./main-script.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('hostId')) {
-        document.getElementById('div-title')
-            .insertAdjacentElement('afterend', createDivGameCode());
-        document.getElementById('div-form')
-            .insertAdjacentElement('afterend', createDivBtnStart());
-            
+        createDivGameCode(document.getElementById('title'));
+        createDivBtnStart();
         document.getElementById('btn-start-game').addEventListener('click', e => {
             const payLoad = {
                 'method': 'start-game',
@@ -38,7 +35,7 @@ webSocket.onmessage = receivedMessage => {
         let playerUl = document.getElementById('players-list');
         playerUl.innerHTML = ''; //brutal way maybe to review but not now
         playersList.forEach(username => {
-            let element = document.createElement('li');
+            let element = document.createElement('p');
             element.innerHTML = username;
             element.classList.add('new-amsterdam-regular');
             playerUl.appendChild(element);
@@ -50,29 +47,31 @@ webSocket.onmessage = receivedMessage => {
     }
 }
 
-function createDivGameCode() {
-    const divRow = document.createElement('div');
-    divRow.classList.add('row', 'text-center', 'mt-3');
-    const pCode = document.createElement('p');
-    pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId');
+function createDivGameCode(target) {    
     const pDesc = document.createElement('p');
-    pDesc.classList.add('fst-italic');
+    pDesc.classList.add('col-12', 'fst-italic');
     pDesc.innerText = 'Condividilo con i tuoi amici per farli entrare';
-    divRow.appendChild(pCode);
-    divRow.appendChild(pDesc);
-    return divRow;
+    target.insertAdjacentElement('afterend', pDesc);
+
+    const pCode = document.createElement('p');
+    pCode.classList.add('col-12');
+    pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId');
+    target.insertAdjacentElement('afterend', pCode);
+
 }
 
 function createDivBtnStart() {
-    const divRow = document.createElement('div');
-    divRow.classList.add('row');
-    const divCol = document.createElement('div');
-    divCol.classList.add('col-md-4', 'text-center');
+    const divLeft = document.createElement('div');
+    divLeft.classList.add('col-2', 'col-lg-4');
+    document.getElementById('main-row').appendChild(divLeft);
+
     const btn = document.createElement('button');
-    btn.classList.add('new-amsterdam-regular', 'btn-start-game', 'w-50', 'mt-2');
+    btn.classList.add('new-amsterdam-regular', 'btn-start-game', 'mt-2', 'col-8', 'col-lg-4', 'w-60');
     btn.setAttribute('id', 'btn-start-game');
     btn.innerHTML = 'Avvia partita';
-    divCol.appendChild(btn);
-    divRow.appendChild(divCol);
-    return divRow;
+    document.getElementById('main-row').appendChild(btn);
+
+    const divRight = document.createElement('div');
+    divLeft.classList.add('col-2', 'col-lg-4');
+    document.getElementById('main-row').appendChild(divRight);
 }
