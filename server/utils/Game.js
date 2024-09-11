@@ -78,12 +78,9 @@ class Game {
 		for (const player of Object.values(this._players)) {
 			console.log(player.score + ' ' + this._targetScore);
 			if (player.score === this._targetScore) {
-				console.log('fine');
 				return true;
 			}
 		}
-		
-		console.log('Non fine');
 		return false;
 	}
 
@@ -112,7 +109,8 @@ class Game {
 
 	newManche() {
 		Object.keys(this._players).forEach(player => {
-			if (player !== this.currentManche.winner) {
+			console.log(player + ' ' + this.currentManche.master);
+			if (player !== this.currentManche.master) {
 				this._players[player].addNewCart(this._whiteCards.pop());
 			}
 		});
