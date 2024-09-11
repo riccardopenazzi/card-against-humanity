@@ -7,7 +7,7 @@ let showError = document.getElementById('show-error');
 let gameStats = document.getElementById('game-stats');
 let playerUsername = document.getElementById('player-username');
 
-document.addEventListener('DOMContentLoaded', () => {
+/* document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('hostId')) {
         createDivGameCode(title);
         createDivBtnStart();
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     txtUsername.addEventListener('input', inputEventAction);
-});
+}); */
 
 btnConfirmUsername.addEventListener('click', event => {
     event.preventDefault();
@@ -44,6 +44,42 @@ btnConfirmUsername.addEventListener('click', event => {
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
+    console.log(message);
+
+    if (message.method === 'new-id-set') {
+        sessionStorage.setItem('clientId', message.clientId);
+        console.log("new clientId set successfully ", sessionStorage.getItem('clientId'));
+        const payLoad = {
+            "method": "create",
+            "clientId": sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+
+    if (message.method === 'create') {
+        sessionStorage.setItem('gameId', message.gameId);
+        sessionStorage.setItem('hostId', message.hostId);
+        const payLoad = {
+            "method": "connect-again",
+            "clientId": sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+
+    if (message.method === 'reconnected') {
+        if (sessionStorage.getItem('hostId')) {
+            createDivGameCode(title);
+            createDivBtnStart();
+            document.getElementById('btn-start-game').addEventListener('click', e => {
+                const payLoad = {
+                    'method': 'start-game',
+                    'gameId': sessionStorage.getItem('gameId'),
+                }
+                webSocket.send(JSON.stringify(payLoad));
+            });
+        }
+        txtUsername.addEventListener('input', inputEventAction);
+    }
 
     if (message.method === 'update-players-list') {
         let playersList = message.playersList;

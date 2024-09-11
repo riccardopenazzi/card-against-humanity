@@ -61,11 +61,26 @@ wsServer.on("request", request => {
 		}
 
 		if (message.method === 'connect-again') {
-			connectedClients[message.clientId].connection = connection;
-			const payLoad = {
-				'method': 'reconnected',
+			let clientId = message.clientId;
+			if (checkStableConnection(clientId)) {
+				//if connection already exists
+				connectedClients[clientId].connection = connection;
+				const payLoad = {
+					'method': 'reconnected',
+				}
+				sendMessage(clientId, payLoad);
+			} else {
+				const newClientId = uuidv4();
+				connectedClients[newClientId] = {
+					"connection": connection,
+				};
+				const payLoad = {
+					"method": "new-id-set",
+					"clientId": newClientId,
+					/* "hostId":  */
+				};
+				sendMessage(newClientId, payLoad);
 			}
-			sendMessage(message.clientId, payLoad);
 		}
 
 		if (message.method === 'create') {
@@ -222,6 +237,11 @@ wsServer.on("request", request => {
 	});
 
 });
+
+function checkStableConnection(clientId) {
+	console.log(connectedClients.hasOwnProperty(clientId));
+	return connectedClients.hasOwnProperty(clientId);
+}
 
 function createGame(hostId) {
 	let gameId = generateUniqueGameId();
