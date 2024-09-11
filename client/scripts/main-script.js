@@ -39,5 +39,12 @@ webSocket.onmessage = receivedMessage => {
             debugMode && console.log(sessionStorage.getItem('hostId'));
             debugMode && console.log("Game create successfully ", sessionStorage.getItem('gameId'));
             break;
+        case 'verify-game-code':
+            if (message.result === 'valid') {
+                sessionStorage.setItem('gameId', message.gameCode);
+                window.location.href = "/waiting-room";
+            } else {
+                document.getElementById('show-error').innerText = 'Si è verificato un errore, il codice potrebbe non essere di 6 caratteri, contenere spazi o essere errato';
+            }
     }
 }

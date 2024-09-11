@@ -79,6 +79,17 @@ wsServer.on("request", request => {
 			sendMessage(message.clientId, payLoad);
 		}
 
+		if (message.method === 'verify-game-code') {
+			let clientId = message.clientId;
+			let gameCode = message.gameCode;
+			const payLoad = {
+				'method': 'verify-game-code',
+				'gameCode': gameCode,
+				'result': isGameCodeValid(gameCode) ? 'valid' : 'invalid',
+			};
+			sendMessage(clientId, payLoad);
+		}
+
 		if (message.method === 'join') {
 			let player = new Player(message.clientId, message.username);
 			games[message.gameId].addPlayer(player);
@@ -207,6 +218,13 @@ function generateUniqueGameId() {
 	return randomNumber.toString(36).toUpperCase().padStart(6, '0');
 }
 
+function isGameCodeValid(gameCode) {
+	if (gameCode.includes(' ') || !isGameIdExisting(gameCode) || gameCode.length != 6) {
+		return false;
+	}
+	return true;
+}
+
 function isGameIdExisting(gameId) {
 	return gameId in games;
 }
@@ -221,3 +239,5 @@ function sendMessage(clientId, payLoad) {
 	const connection = connectedClients[clientId].connection;
 	connection.send(JSON.stringify(payLoad));
 }
+
+
