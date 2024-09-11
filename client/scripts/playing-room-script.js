@@ -79,7 +79,7 @@ function fillCardList(cardList) {
 
 function createConfirmBtn(card) {
     let btn = document.createElement('button');
-    btn.classList.add('btn-confirm-card');
+    btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
     btn.innerText = 'Conferma';
     btn.addEventListener('click', e => {
         const payLoad = {
@@ -114,7 +114,7 @@ function fillMasterCardList(playedCards) {
 
 function createChooseWinnermBtn(clientId) {
     let btn = document.createElement('button');
-    btn.classList.add('btn-winning-card');
+    btn.classList.add('btn-winning-card', 'mochiy-pop-p-one-regular');
     btn.innerText = 'Scegli';
     btn.addEventListener('click', e => {
         const payLoad = {

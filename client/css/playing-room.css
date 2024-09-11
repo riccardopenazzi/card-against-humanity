@@ -17,7 +17,7 @@
     flex-direction: column; 
     justify-content: space-between; 
     min-width: 240px;
-    height: 240px;
+    height: 300px;
     background-color: #f8f9fa;
     border: 2px solid #343a40;
     border-radius: 10px;
@@ -28,6 +28,7 @@
     cursor: pointer;
     transition: transform 0.2s;
     scroll-snap-align: start;
+    font-size: 18px;
 }
 
 .card div {
@@ -40,7 +41,7 @@
     bottom: 5px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 5px;
+    padding: 7px;
     font-size: 14px;
     cursor: pointer;
     border-radius: 10px;
@@ -53,4 +54,8 @@
 
 .btn-winning-card {
     background-color: #84e08c;
+}
+
+#black-card {
+    padding: 0px 15px;
 }
