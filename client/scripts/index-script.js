@@ -5,18 +5,12 @@ const btnJoin = document.getElementById('btn-join-game');
 const btnCreate = document.getElementById('btn-create-game');
 
 btnCreate.addEventListener('click', event => {
-    const clientId = sessionStorage.getItem('clientId')
-    const payLoad = {
-        "method": "create",
-        "clientId": clientId,
-    }
-    webSocket.send(JSON.stringify(payLoad));
-    window.location.href = "/waiting-room";
+    window.location.href = "/settings";
 });
 
 btnJoin.addEventListener('click', event => {
     let gameCode = inputCode.value.toUpperCase();
-    let isCodeValid = checkGameCode(gameCode);
+    checkGameCode(gameCode);
     document.getElementById('show-error').innerText = '';
 });
 
