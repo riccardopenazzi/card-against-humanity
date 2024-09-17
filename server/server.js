@@ -13,6 +13,7 @@ const server = http.createServer(app);  // Unico server HTTP per WebSocket e Exp
 // Impostazione di Express
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
+app.get("/settings", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/settings.html")));
 app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/waiting-room.html")));
 app.get("/playing-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/playing-room.html")));
 app.get("/score", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/score.html")));
@@ -88,7 +89,9 @@ wsServer.on("request", request => {
 
 		if (message.method === 'create') {
 			let clientId = message.clientId;
-			let gameId = createGame(clientId);
+			let playersCards = message.playersCards;
+			let winsNumber = message.winsNumber;
+			let gameId = createGame(clientId, playersCards, winsNumber);
 			const payLoad = {
 				"method": "create",
 				"gameId": gameId,
@@ -246,12 +249,12 @@ function checkStableConnection(clientId) {
 	return connectedClients.hasOwnProperty(clientId);
 }
 
-function createGame(hostId) {
+function createGame(hostId,  playersCards, winsNumber) {
 	let gameId = generateUniqueGameId();
 	while (isGameIdExisting(gameId)) {
 		gameId = generateUniqueGameId();
 	}
-	games[gameId] = new Game(gameId, hostId, 7, 5);
+	games[gameId] = new Game(gameId, hostId, playersCards, winsNumber);
 	return gameId;
 }
 

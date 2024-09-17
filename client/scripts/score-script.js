@@ -47,6 +47,7 @@ function showScores(scores) {
     btn.classList.add('btn-confirm', 'col-6', 'mt-5');
     btn.innerText = 'Conferma';
     btn.addEventListener('click', e => {
+        btn.setAttribute('disabled', 'true');
         const payLoad = {
             'method': 'new-manche',
             'gameId': sessionStorage.getItem('gameId'),

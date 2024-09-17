@@ -12,7 +12,7 @@ class Game {
 		this._whiteCards = [];
 		this._startCardNumber = startCardNumber;
 		this._gameState = 'waiting-players';
-		this._targetScore = targetScore;
+		this._targetScore = parseInt(targetScore);
 		this._readyPlayersCounter = 0;
 	}
 
