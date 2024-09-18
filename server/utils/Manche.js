@@ -24,7 +24,7 @@ class Manche {
         return this._winner;
     }
 
-    addCart(clientId, card) {
+    addCard(clientId, card) {
         this._playedWhiteCards[clientId] = card;
         console.log(this._playedWhiteCards);
     }
@@ -35,6 +35,10 @@ class Manche {
 
     setWinner(winnerId) {
         this._winner = winnerId;
+    }
+
+    changeBlackCard(blackCard) {
+        this._blackCard = blackCard;
     }
 }
 

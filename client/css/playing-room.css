@@ -74,7 +74,9 @@
 
 .btn-next-card,
 .btn-show-choose-winner,
-.btn-skip-card {
+.btn-skip-card,
+.btn-confirm,
+.btn-cancel {
     padding: 10px;
     border-radius: 8px;
 }

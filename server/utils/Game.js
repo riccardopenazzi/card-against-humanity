@@ -14,6 +14,7 @@ class Game {
 		this._gameState = 'waiting-players';
 		this._targetScore = parseInt(targetScore);
 		this._readyPlayersCounter = 0;
+		this._surveyCounter = 0;
 	}
 
 	addPlayer(player) {
@@ -60,6 +61,10 @@ class Game {
 
 	get readyPlayers() {
 		return this._readyPlayersCounter;
+	}
+
+	get surveyResult() {
+		return this._surveyCounter;
 	}
 
 	initGame() {
@@ -123,6 +128,24 @@ class Game {
 		});
 		this._manches.push(new Manche(this._blackCards.pop(), this.currentManche.winner));
 		this._readyPlayersCounter = 0;
+	}
+
+	resetSurveyCounter() {
+		this._surveyCounter = 0;
+	}
+
+	surveyPositiveVote() {
+		this._surveyCounter++;
+		this.incReadyPlayers();
+	}
+
+	surveyNegativeVote() {
+		this._surveyCounter = this._surveyCounter - 1;
+		this.incReadyPlayers();
+	}
+
+	skipBlackCard() {
+		this.currentManche.changeBlackCard(this._blackCards.pop());
 	}
 
 	#initBlackDeck() {
