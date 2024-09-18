@@ -71,7 +71,7 @@ function fillCardList(cardList) {
     let cardListDiv = document.createElement('div');
     cardListDiv.classList.add('scrollable-cards');
     frame.appendChild(cardListDiv);
-    cardList.forEach((card, index) => {
+    cardList.reverse().forEach((card, index) => {
         let cardDiv = document.createElement('div');
         cardDiv.classList.add('card');
         let textDiv = document.createElement('div');
