@@ -261,6 +261,16 @@ wsServer.on("request", request => {
 			}
 		}
 
+		/*Unpredictable events */
+
+		if (message.method === 'req-black-card-change') {
+			let gameId = message.gameId;
+			const payLoad = {
+				'method': 'req-black-card-change',
+			}
+			sendBroadcastMessage(gameId, payLoad);
+		}
+
 	});
 
 });

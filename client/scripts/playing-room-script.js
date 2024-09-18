@@ -2,6 +2,7 @@ import { webSocket } from "./main-script.js";
 
 let btnNextCard = document.getElementById('btn-next-card');
 let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
+let btnSkipCard = document.getElementById('btn-skip-card');
 
 let playedCards = [];
 
@@ -18,6 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const payLoad = {
             'method': 'go-to-choosing-winner',
             'gameId': sessionStorage.getItem('gameId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+
+    btnSkipCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-black-card-change',
+            'gameId': sessionStorage.getItem('gameId'),
+            'clientId': sessionStorage.getItem('clientId'),
         }
         webSocket.send(JSON.stringify(payLoad));
     });
@@ -97,6 +107,10 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'win') {
         paintMessage(message.winner + ' ha vinto');
+    }
+
+    if (message.method === 'req-black-card-change') {
+        
     }
 }
 

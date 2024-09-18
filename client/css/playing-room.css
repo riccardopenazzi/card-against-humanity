@@ -73,7 +73,8 @@
 }
 
 .btn-next-card,
-.btn-show-choose-winner {
+.btn-show-choose-winner,
+.btn-skip-card {
     padding: 10px;
     border-radius: 8px;
 }
@@ -84,4 +85,8 @@
 
 .btn-show-choose-winner {
     background-color: whitesmoke;
+}
+
+.btn-skip-card {
+    background-color: rgb(226, 80, 80);
 }
