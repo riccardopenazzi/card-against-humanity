@@ -1,11 +1,22 @@
 import { webSocket } from "./main-script.js";
+
 let btnNextCard = document.getElementById('btn-next-card');
+let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
+
 let playedCards = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     btnNextCard.addEventListener('click', () => {
         const payLoad = {
             'method': 'show-next-card',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+
+    btnShowChooseWinner.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'go-to-choosing-winner',
             'gameId': sessionStorage.getItem('gameId'),
         }
         webSocket.send(JSON.stringify(payLoad));
@@ -50,10 +61,10 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'show-played-cards') {
+        document.getElementById('frame').innerHTML = '';
+        paintMessage('Ecco le carte giocate');
         playedCards = Object.values(message.playedCards);
-        console.log(playedCards);
         showSingleCard(playedCards.pop());
-        console.log(playedCards);
         const isMaster = (sessionStorage.getItem('master') === 'true');
         if (isMaster) {
             document.getElementById('btn-next-card').style.display = 'block';
@@ -61,13 +72,19 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'show-next-card') {
-        console.log(playedCards);
         showSingleCard(playedCards.pop());
+        const isMaster = (sessionStorage.getItem('master') === 'true');
+        if (isMaster) {
+            document.getElementById('btn-next-card').style.display = 'none';
+            document.getElementById('btn-show-choose-winner').style.display = 'block';
+        }
     }
 
     if (message.method === 'choosing-winner') {
+        document.getElementById('single-card-frame').innerHTML = '';
         const isMaster = (sessionStorage.getItem('master') === 'true');
         if (isMaster) {
+            document.getElementById('btn-show-choose-winner').style.display = 'none';
             fillMasterCardList(message.playedCards);
         } else {
             paintMessage('Il master sta scegliendo il vincitore');
@@ -129,14 +146,18 @@ function fillMasterCardList(playedCards) {
 }
 
 function showSingleCard(card) {
-    let frame = document.getElementById('frame');
+    let frame = document.getElementById('single-card-frame');
     frame.innerHTML = '';
     let cardDiv = document.createElement('div');
-    cardDiv.classList.add('card');
+    cardDiv.classList.add('card', 'single-card');
     let textDiv = document.createElement('div');
     textDiv.innerText = card;
     cardDiv.appendChild(textDiv);
     frame.appendChild(cardDiv);
+
+    setTimeout(() => {
+        cardDiv.classList.add('visible');
+    }, 300);
 }
 
 function paintMessage(message) {

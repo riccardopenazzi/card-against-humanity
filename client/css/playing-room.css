@@ -32,6 +32,17 @@
     font-size: 18px;
 }
 
+.single-card {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.single-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .card div {
     flex-grow: 1; 
 }
@@ -61,8 +72,16 @@
     padding: 0px 15px;
 }
 
-.btn-next-card {
+.btn-next-card,
+.btn-show-choose-winner {
     padding: 10px;
     border-radius: 8px;
+}
+
+.btn-next-card {
     background-color: wheat;
+}
+
+.btn-show-choose-winner {
+    background-color: whitesmoke;
 }

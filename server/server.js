@@ -201,6 +201,15 @@ wsServer.on("request", request => {
 			sendBroadcastMessage(gameId, payLoad);
 		}
 
+		if (message.method === 'go-to-choosing-winner') {
+			let gameId = message.gameId;
+			const payLoad = {
+				'method': 'choosing-winner',
+				'playedCards': games[gameId].currentManche.playedWhiteCards,
+			}
+			sendBroadcastMessage(gameId, payLoad);
+		}
+
 		if (message.method === 'choosing-winner') {
 			let gameId = message.gameId;
 			let winner = message.winner;
