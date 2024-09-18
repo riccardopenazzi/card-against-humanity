@@ -1,6 +1,16 @@
 import { webSocket } from "./main-script.js";
+let btnNextCard = document.getElementById('btn-next-card');
+let playedCards = [];
 
-let problemCounter = 0;
+document.addEventListener('DOMContentLoaded', () => {
+    btnNextCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'show-next-card',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+});
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
@@ -37,6 +47,22 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'play-card') {
         paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+    }
+
+    if (message.method === 'show-played-cards') {
+        playedCards = Object.values(message.playedCards);
+        console.log(playedCards);
+        showSingleCard(playedCards.pop());
+        console.log(playedCards);
+        const isMaster = (sessionStorage.getItem('master') === 'true');
+        if (isMaster) {
+            document.getElementById('btn-next-card').style.display = 'block';
+        }
+    }
+
+    if (message.method === 'show-next-card') {
+        console.log(playedCards);
+        showSingleCard(playedCards.pop());
     }
 
     if (message.method === 'choosing-winner') {
@@ -83,22 +109,6 @@ function fillCardList(cardList) {
     });
 }
 
-function createConfirmBtn(card) {
-    let btn = document.createElement('button');
-    btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
-    btn.innerText = 'Conferma';
-    btn.addEventListener('click', e => {
-        const payLoad = {
-            'method': 'play-card',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-            'cardText': card,
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
-    return btn;
-}
-
 function fillMasterCardList(playedCards) {
     let frame = document.getElementById('frame');
     frame.innerHTML = '';
@@ -118,6 +128,41 @@ function fillMasterCardList(playedCards) {
     });
 }
 
+function showSingleCard(card) {
+    let frame = document.getElementById('frame');
+    frame.innerHTML = '';
+    let cardDiv = document.createElement('div');
+    cardDiv.classList.add('card');
+    let textDiv = document.createElement('div');
+    textDiv.innerText = card;
+    cardDiv.appendChild(textDiv);
+    frame.appendChild(cardDiv);
+}
+
+function paintMessage(message) {
+    let frame = document.getElementById('frame');
+    frame.innerHTML = '';
+    let p = document.createElement('p');
+    p.innerHTML = message;
+    frame.appendChild(p);
+}
+
+function createConfirmBtn(card) {
+    let btn = document.createElement('button');
+    btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
+    btn.innerText = 'Conferma';
+    btn.addEventListener('click', e => {
+        const payLoad = {
+            'method': 'play-card',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+            'cardText': card,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+    return btn;
+}
+
 function createChooseWinnermBtn(clientId) {
     let btn = document.createElement('button');
     btn.classList.add('btn-winning-card', 'mochiy-pop-p-one-regular');
@@ -131,12 +176,4 @@ function createChooseWinnermBtn(clientId) {
         webSocket.send(JSON.stringify(payLoad));
     });
     return btn
-}
-
-function paintMessage(message) {
-    let frame = document.getElementById('frame');
-    frame.innerHTML = '';
-    let p = document.createElement('p');
-    p.innerHTML = message;
-    frame.appendChild(p);
 }

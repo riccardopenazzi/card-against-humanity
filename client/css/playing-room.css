@@ -60,3 +60,9 @@
 #black-card {
     padding: 0px 15px;
 }
+
+.btn-next-card {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: wheat;
+}
