@@ -2,6 +2,10 @@ import { webSocket } from "./main-script.js";
 
 let btnNextCard = document.getElementById('btn-next-card');
 let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
+let btnSkipCard = document.getElementById('btn-skip-card');
+let skipCardFrame = document.getElementById('skip-card-frame');
+let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
+let standardFrame = document.getElementById('standard-frame');
 
 let playedCards = [];
 
@@ -21,11 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         webSocket.send(JSON.stringify(payLoad));
     });
+
+    btnSkipCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-black-card-change',
+            'gameId': sessionStorage.getItem('gameId'),
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
 });
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
-
+    console.log(message);
     if (message.method === 'reconnected') {
         const payLoad = {
             'method': 'start-manche',
@@ -36,8 +49,8 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'start-manche') {
-        console.log(message);
-        document.getElementById('title').innerHTML += message.mancheNumber;
+        document.getElementById('title').innerHTML = '';
+        document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
         document.getElementById('black-card').innerText = message.blackCard;
         const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
         sessionStorage.setItem('master', isMaster);
@@ -97,6 +110,20 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'win') {
         paintMessage(message.winner + ' ha vinto');
+    }
+
+    if (message.method === 'req-black-card-change') {
+        showSkipCardSurvey();
+    }
+
+    if (message.method === 'vote-skip-survey') {
+        skipCardFrame.style.display = 'none';
+        const payLoad = {
+            'method': 'start-manche',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
     }
 }
 
@@ -166,6 +193,46 @@ function paintMessage(message) {
     let p = document.createElement('p');
     p.innerHTML = message;
     frame.appendChild(p);
+}
+
+function showSkipCardSurvey() {
+    document.getElementById('frame').innerHTML = '';
+    internalSkipCardFrame.innerHTML = '';
+    let p = document.createElement('p');
+    p.innerHTML = 'Sei daccordo con la scelta di saltare questa carta?';
+
+    let btnContainer = document.createElement('div');
+    btnContainer.classList.add('d-flex', 'justify-content-center', 'gap-2');
+
+    let btnConfirm = document.createElement('button');
+    btnConfirm.classList.add('btn-confirm', 'btn', 'btn-primary', 'col-12');
+    btnConfirm.innerText = 'Si';
+    btnConfirm.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'vote-skip-survey',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+            'vote': 'yes',
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+
+    let btnCancel = document.createElement('button');
+    btnCancel.classList.add('btn-cancel', 'btn', 'btn-secondary', 'col-12');
+    btnCancel.innerText = 'No';
+    btnCancel.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'vote-skip-survey',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+            'vote': 'no',
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+    btnContainer.appendChild(btnConfirm);
+    btnContainer.appendChild(btnCancel);
+    internalSkipCardFrame.appendChild(p);
+    internalSkipCardFrame.appendChild(btnContainer);
 }
 
 function createConfirmBtn(card) {

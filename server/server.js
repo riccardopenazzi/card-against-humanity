@@ -175,7 +175,7 @@ wsServer.on("request", request => {
 			let cardText = message.cardText;
 			let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
 			let choosenCard = games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1)[0];
-			games[gameId].currentManche.addCart(clientId, choosenCard);
+			games[gameId].currentManche.addCard(clientId, choosenCard);
 			const payLoad = {
 				'method': 'play-card',
 			}
@@ -256,6 +256,38 @@ wsServer.on("request", request => {
 				const payLoad = {
 					'method': 'counter-ready-players',
 					'readyPlayers': games[gameId].readyPlayers,
+				}
+				sendBroadcastMessage(gameId, payLoad);
+			}
+		}
+
+		/*Unpredictable events */
+
+		if (message.method === 'req-black-card-change') {
+			let gameId = message.gameId;
+			const payLoad = {
+				'method': 'req-black-card-change',
+			}
+			sendBroadcastMessage(gameId, payLoad);
+		}
+
+		if (message.method === 'vote-skip-survey') {
+			let gameId = message.gameId;
+			if (message.vote === 'yes') {
+				games[gameId].surveyPositiveVote();
+			} else {
+				games[gameId].surveyNegativeVote();
+			}
+			if (games[gameId].checkAllPlayersReady()) {
+				if (games[gameId].surveyResult >= 0) {
+					console.log(games[gameId].surveyResult);
+					games[gameId].skipBlackCard();
+				}
+				games[gameId].resetSurveyCounter();
+				games[gameId].resetReadyPlayers();
+				const payLoad = {
+					'method': 'vote-skip-survey',
+					'blackCard': games[gameId].currentManche.blackCard,
 				}
 				sendBroadcastMessage(gameId, payLoad);
 			}
