@@ -1,6 +1,27 @@
 import { webSocket } from "./main-script.js";
 
-let problemCounter = 0;
+let btnNextCard = document.getElementById('btn-next-card');
+let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
+
+let playedCards = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    btnNextCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'show-next-card',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+
+    btnShowChooseWinner.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'go-to-choosing-winner',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+});
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
@@ -39,9 +60,31 @@ webSocket.onmessage = receivedMessage => {
         paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
     }
 
-    if (message.method === 'choosing-winner') {
+    if (message.method === 'show-played-cards') {
+        document.getElementById('frame').innerHTML = '';
+        paintMessage('Ecco le carte giocate');
+        playedCards = Object.values(message.playedCards);
+        showSingleCard(playedCards.pop());
         const isMaster = (sessionStorage.getItem('master') === 'true');
         if (isMaster) {
+            document.getElementById('btn-next-card').style.display = 'block';
+        }
+    }
+
+    if (message.method === 'show-next-card') {
+        showSingleCard(playedCards.pop());
+        const isMaster = (sessionStorage.getItem('master') === 'true');
+        if (isMaster) {
+            document.getElementById('btn-next-card').style.display = 'none';
+            document.getElementById('btn-show-choose-winner').style.display = 'block';
+        }
+    }
+
+    if (message.method === 'choosing-winner') {
+        document.getElementById('single-card-frame').innerHTML = '';
+        const isMaster = (sessionStorage.getItem('master') === 'true');
+        if (isMaster) {
+            document.getElementById('btn-show-choose-winner').style.display = 'none';
             fillMasterCardList(message.playedCards);
         } else {
             paintMessage('Il master sta scegliendo il vincitore');
@@ -71,7 +114,7 @@ function fillCardList(cardList) {
     let cardListDiv = document.createElement('div');
     cardListDiv.classList.add('scrollable-cards');
     frame.appendChild(cardListDiv);
-    cardList.forEach((card, index) => {
+    cardList.reverse().forEach((card, index) => {
         let cardDiv = document.createElement('div');
         cardDiv.classList.add('card');
         let textDiv = document.createElement('div');
@@ -81,22 +124,6 @@ function fillCardList(cardList) {
         cardDiv.appendChild(confirmBtn);
         cardListDiv.appendChild(cardDiv);
     });
-}
-
-function createConfirmBtn(card) {
-    let btn = document.createElement('button');
-    btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
-    btn.innerText = 'Conferma';
-    btn.addEventListener('click', e => {
-        const payLoad = {
-            'method': 'play-card',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-            'cardText': card,
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
-    return btn;
 }
 
 function fillMasterCardList(playedCards) {
@@ -118,6 +145,45 @@ function fillMasterCardList(playedCards) {
     });
 }
 
+function showSingleCard(card) {
+    let frame = document.getElementById('single-card-frame');
+    frame.innerHTML = '';
+    let cardDiv = document.createElement('div');
+    cardDiv.classList.add('card', 'single-card');
+    let textDiv = document.createElement('div');
+    textDiv.innerText = card;
+    cardDiv.appendChild(textDiv);
+    frame.appendChild(cardDiv);
+
+    setTimeout(() => {
+        cardDiv.classList.add('visible');
+    }, 300);
+}
+
+function paintMessage(message) {
+    let frame = document.getElementById('frame');
+    frame.innerHTML = '';
+    let p = document.createElement('p');
+    p.innerHTML = message;
+    frame.appendChild(p);
+}
+
+function createConfirmBtn(card) {
+    let btn = document.createElement('button');
+    btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
+    btn.innerText = 'Conferma';
+    btn.addEventListener('click', e => {
+        const payLoad = {
+            'method': 'play-card',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+            'cardText': card,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+    return btn;
+}
+
 function createChooseWinnermBtn(clientId) {
     let btn = document.createElement('button');
     btn.classList.add('btn-winning-card', 'mochiy-pop-p-one-regular');
@@ -131,12 +197,4 @@ function createChooseWinnermBtn(clientId) {
         webSocket.send(JSON.stringify(payLoad));
     });
     return btn
-}
-
-function paintMessage(message) {
-    let frame = document.getElementById('frame');
-    frame.innerHTML = '';
-    let p = document.createElement('p');
-    p.innerHTML = message;
-    frame.appendChild(p);
 }

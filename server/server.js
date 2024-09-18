@@ -181,12 +181,33 @@ wsServer.on("request", request => {
 			}
 			sendMessage(clientId, payLoad);
 			if (games[gameId].checkMancheComplete()) {
-				const payLoad = {
+				/* const payLoad = {
 					'method': 'choosing-winner',
+					'playedCards': games[gameId].currentManche.playedWhiteCards,
+				} */
+				const payLoad = {
+					'method': 'show-played-cards',
 					'playedCards': games[gameId].currentManche.playedWhiteCards,
 				}
 				sendBroadcastMessage(gameId, payLoad);
 			}
+		}
+
+		if (message.method === 'show-next-card') {
+			const gameId = message.gameId;
+			const payLoad = {
+				'method': 'show-next-card',
+			}
+			sendBroadcastMessage(gameId, payLoad);
+		}
+
+		if (message.method === 'go-to-choosing-winner') {
+			let gameId = message.gameId;
+			const payLoad = {
+				'method': 'choosing-winner',
+				'playedCards': games[gameId].currentManche.playedWhiteCards,
+			}
+			sendBroadcastMessage(gameId, payLoad);
 		}
 
 		if (message.method === 'choosing-winner') {
