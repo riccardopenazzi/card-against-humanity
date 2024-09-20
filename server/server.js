@@ -1,4 +1,4 @@
-const debugMode = true;
+const debugMode = false;
 
 const Game = require("./utils/Game");
 const Player = require("./utils/Player");
@@ -316,6 +316,7 @@ wsServer.on("request", request => {
 				connection.send(JSON.stringify(payLoad));
 				return
 			}
+			console.log('Imposto a true ', clientId);
 			connectedClients[clientId].alive = true;
 		}
 
@@ -355,10 +356,11 @@ wsServer.on("request", request => {
 
 });
 
-const periodicallyCheck = setInterval(checkClientsConnected, 10000);
+const periodicallyCheck = setInterval(checkClientsConnected, 15000);
 
 function checkClientsConnected() {
 	if (!checking) {
+		console.log('controllo connessioni');
 		checking = true;
 		Object.keys(connectedClients).forEach(clientId => {
 			if (connectedClients[clientId].alive) {
