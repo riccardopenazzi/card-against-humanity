@@ -1,4 +1,10 @@
-import { webSocket } from "./main-script.js";
+/* import { webSocket } from "./main-script.js"; */
+
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const webSocketPort = window.location.port;
+export let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+
+const debugMode = true;
 
 let txtUsername = document.getElementById('txt-username');
 let title = document.getElementById('title');
@@ -25,6 +31,24 @@ btnConfirmUsername.addEventListener('click', event => {
         showError.innerText = 'Username non valido, potrebbe contenere spazi o caratteri non consentiti. Utilizza solo lettere e numeri';
     }
 });
+
+webSocket.onopen = () => {
+    const clientId = sessionStorage.getItem('clientId');
+    if (!clientId) {
+        debugMode && console.log('Client id not set');
+        const payLoad = {
+            "method": "connect"
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    } else {
+        debugMode && console.log('ClientId already set');
+        const payLoad = {
+            "method": "connect-again",
+            "clientId": clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+}
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);

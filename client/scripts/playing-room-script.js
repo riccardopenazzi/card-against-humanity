@@ -1,4 +1,10 @@
-import { webSocket } from "./main-script.js";
+/* import { webSocket } from "./main-script.js"; */
+
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const webSocketPort = window.location.port;
+export let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+
+const debugMode = true;
 
 let btnNextCard = document.getElementById('btn-next-card');
 let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
@@ -9,6 +15,23 @@ let standardFrame = document.getElementById('standard-frame');
 
 let playedCards = [];
 
+webSocket.onopen = () => {
+    const clientId = sessionStorage.getItem('clientId');
+    if (!clientId) {
+        debugMode && console.log('Client id not set');
+        const payLoad = {
+            "method": "connect"
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    } else {
+        debugMode && console.log('ClientId already set');
+        const payLoad = {
+            "method": "connect-again",
+            "clientId": clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     btnNextCard.addEventListener('click', () => {
