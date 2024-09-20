@@ -353,7 +353,7 @@ wsServer.on("request", request => {
 
 });
 
-const periodicallyCheck = setInterval(checkClientsConnected, 2000);
+const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
 function checkClientsConnected() {
 	Object.keys(connectedClients).forEach(clientId => {
