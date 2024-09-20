@@ -29,6 +29,24 @@ document.addEventListener('DOMContentLoaded', () => {
             "winsNumber": winsNumber,
         }
         webSocket.send(JSON.stringify(payLoad));
-        window.location.href = '/waiting-room';
     });
 });
+
+webSocket.onmessage = receivedMessage => {
+    const message = JSON.parse(receivedMessage.data);
+
+    if (message.method === 'check-connection') {
+        const payLoad = {
+            'method': 'check-connection',
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+
+    if (message.method === 'create') {
+        sessionStorage.setItem('gameId', message.gameId);
+        sessionStorage.setItem('hostId', message.hostId);
+        window.location.href = '/waiting-room';
+        
+    }
+}

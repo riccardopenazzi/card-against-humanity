@@ -25,6 +25,14 @@ webSocket.onmessage = receivedMessage => {
         document.getElementById('player-counter').innerText = 'Giocatori pronti: ' + message.readyPlayers;
     }
 
+    if (message.method === 'check-connection') {
+        const payLoad = {
+            'method': 'check-connection',
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+
 }
 
 function showScores(scores) {

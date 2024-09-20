@@ -42,6 +42,8 @@ const connectedClients = {};
 */
 const games = {};
 
+let connectionKey = '';
+
 wsServer.on("request", request => {
 	const connection = request.accept(null, request.origin);
 	connection.on("open", () => console.log("opened"));
@@ -56,6 +58,7 @@ wsServer.on("request", request => {
 			const clientId = uuidv4();
 			connectedClients[clientId] = {
 				"connection": connection,
+				"alive": true,
 			};
 			const payLoad = {
 				"method": "connect",
@@ -89,6 +92,7 @@ wsServer.on("request", request => {
 
 		if (message.method === 'create') {
 			let clientId = message.clientId;
+			console.log(clientId);
 			let playersCards = message.playersCards;
 			let winsNumber = message.winsNumber;
 			let gameId = createGame(clientId, playersCards, winsNumber);
@@ -97,6 +101,7 @@ wsServer.on("request", request => {
 				"gameId": gameId,
 				"hostId": clientId,
 			};
+			console.log('Creo')
 			sendMessage(message.clientId, payLoad);
 		}
 
@@ -257,6 +262,11 @@ wsServer.on("request", request => {
 			}
 		}
 
+		if (message.method === 'check-connection') {
+			let clientId = message.clientId;
+			connectedClients[clientId].alive = true;
+		}
+
 		/*Unpredictable events */
 
 		if (message.method === 'req-black-card-change') {
@@ -288,10 +298,25 @@ wsServer.on("request", request => {
 				sendBroadcastMessage(gameId, payLoad);
 			}
 		}
-
 	});
 
 });
+
+const periodicallyCheck = setInterval(checkClientsConnected, 8000);
+
+function checkClientsConnected() {
+	Object.keys(connectedClients).forEach(clientId => {
+		if (connectedClients[clientId].alive) {
+			connectedClients[clientId].alive = false;
+			const payLoad = {
+				'method': 'check-connection',
+			}
+			sendMessage(clientId, payLoad);
+		} else {
+			console.log(clientId, ' disconnected');
+		}
+	})
+}
 
 function checkStableConnection(clientId) {
 	console.log(connectedClients.hasOwnProperty(clientId));

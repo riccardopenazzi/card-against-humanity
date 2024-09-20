@@ -48,5 +48,11 @@ webSocket.onmessage = receivedMessage => {
                 document.getElementById('show-error').innerText = 'Si è verificato un errore, il codice potrebbe non essere di 6 caratteri, contenere spazi o essere errato';
             }
             break;
+        case 'check-connection':
+            const payLoad = {
+                'method': 'check-connection',
+                'clientId': sessionStorage.getItem('clientId'),
+            }
+            webSocket.send(JSON.stringify(payLoad));
     }
 }

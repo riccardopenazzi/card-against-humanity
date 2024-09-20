@@ -24,11 +24,7 @@ class Game {
 	}
 	
 	removePlayer(player) {
-		/* const playerIndex = this._players.indexOf(player);
-		if (playerIndex !== -1) {
-			this._players.splice(playerIndex, 1);
-			debugMode && console.log('Player removed');
-		} */
+		delete this._players[player.clientId];
 	}
 
 	get players() {
