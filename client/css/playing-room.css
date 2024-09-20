@@ -91,3 +91,15 @@
 .btn-skip-card {
     background-color: rgb(226, 80, 80);
 }
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.grabbing {
+    cursor: grabbing;
+    cursor: -webkit-grabbing;
+}
+

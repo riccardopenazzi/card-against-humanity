@@ -9,6 +9,7 @@ let standardFrame = document.getElementById('standard-frame');
 
 let playedCards = [];
 
+
 document.addEventListener('DOMContentLoaded', () => {
     btnNextCard.addEventListener('click', () => {
         const payLoad = {
@@ -146,6 +147,7 @@ function fillCardList(cardList) {
     let frame = document.getElementById('frame');
     let cardListDiv = document.createElement('div');
     cardListDiv.classList.add('scrollable-cards');
+    createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
     cardList.reverse().forEach((card, index) => {
         let cardDiv = document.createElement('div');
@@ -164,6 +166,7 @@ function fillMasterCardList(playedCards) {
     frame.innerHTML = '';
     let cardListDiv = document.createElement('div');
     cardListDiv.classList.add('scrollable-cards');
+    createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
     Object.entries(playedCards).forEach(entry => {
         const [clientId, cardText] = entry;
@@ -270,4 +273,36 @@ function createChooseWinnermBtn(clientId) {
         webSocket.send(JSON.stringify(payLoad));
     });
     return btn
+}
+
+function createScrollFeature(target) {
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    target.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - target.offsetLeft;
+        scrollLeft = target.scrollLeft;
+        target.classList.add('grabbing');
+        document.body.classList.add('no-select');
+    });
+
+    target.addEventListener('mouseleave', () => {
+        isDown = false;
+        document.body.classList.add('no-select');
+    });
+
+    target.addEventListener('mouseup', () => {
+        isDown = false;
+        document.body.classList.add('no-select');
+    });
+
+    target.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - target.offsetLeft;
+        const walk = (x - startX) * 1.1;
+        target.scrollLeft = scrollLeft - walk;
+    });
 }
