@@ -181,10 +181,6 @@ wsServer.on("request", request => {
 			}
 			sendMessage(clientId, payLoad);
 			if (games[gameId].checkMancheComplete()) {
-				/* const payLoad = {
-					'method': 'choosing-winner',
-					'playedCards': games[gameId].currentManche.playedWhiteCards,
-				} */
 				const payLoad = {
 					'method': 'show-played-cards',
 					'playedCards': games[gameId].currentManche.playedWhiteCards,

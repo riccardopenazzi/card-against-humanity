@@ -26,7 +26,7 @@ class Manche {
 
     addCard(clientId, card) {
         this._playedWhiteCards[clientId] = card;
-        console.log(this._playedWhiteCards);
+        debugMode && console.log(this._playedWhiteCards);
     }
 
     whiteCardsPlayed() {

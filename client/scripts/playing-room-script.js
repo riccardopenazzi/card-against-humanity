@@ -79,15 +79,17 @@ webSocket.onmessage = receivedMessage => {
         playedCards = Object.values(message.playedCards);
         showSingleCard(playedCards.pop());
         const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster) {
+        if (isMaster && playedCards.length > 0) {
             document.getElementById('btn-next-card').style.display = 'block';
+        } else if (isMaster) {
+            document.getElementById('btn-show-choose-winner').style.display = 'block';
         }
     }
 
     if (message.method === 'show-next-card') {
         showSingleCard(playedCards.pop());
         const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster) {
+        if (isMaster && playedCards.length == 0) {
             document.getElementById('btn-next-card').style.display = 'none';
             document.getElementById('btn-show-choose-winner').style.display = 'block';
         }
