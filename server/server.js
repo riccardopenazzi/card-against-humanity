@@ -2,7 +2,7 @@ const debugMode = true;
 
 const Game = require("./utils/Game");
 const Player = require("./utils/Player");
-
+const GameState = require("./utils/gameStates");
 const express = require("express");
 const http = require("http");
 const path = require("path");
@@ -171,6 +171,7 @@ wsServer.on("request", request => {
 				return
 			}
 			let gameId = message.gameId;
+			games[gameId].updateGameState(GameState.CHOOSING_WHITE_CARDS);
 			let allPlayersCompleted = games[gameId].checkAllPlayersCompletedManche();
 			const payLoad = {
 				'method': 'start-manche',
@@ -278,6 +279,7 @@ wsServer.on("request", request => {
 				return
 			}
 			let gameId = message.gameId;
+			games[gameId].updateGameState(GameState.WATCHING_SCORES);
 			const payLoad = {
 				'method': 'req-score',
 				'score': games[gameId].getScores(),
@@ -319,6 +321,7 @@ wsServer.on("request", request => {
 
 		if (message.method === 'req-black-card-change') {
 			let gameId = message.gameId;
+			games[gameId].updateGameState(GameState.VOTING_SURVEY);
 			const payLoad = {
 				'method': 'req-black-card-change',
 			}
@@ -350,7 +353,7 @@ wsServer.on("request", request => {
 
 });
 
-const periodicallyCheck = setInterval(checkClientsConnected, 8000);
+const periodicallyCheck = setInterval(checkClientsConnected, 2000);
 
 function checkClientsConnected() {
 	Object.keys(connectedClients).forEach(clientId => {
@@ -375,12 +378,58 @@ function checkClientsConnected() {
 					} else {
 						//kick out only that player
 						games[gameId].removePlayer(clientId);
+						handleDisconnection(gameId, clientId);
 					}
 				}
 			});
 			delete connectedClients[clientId];
 		}
 	});
+}
+
+function handleDisconnection(gameId, clientId) {
+	if (games[gameId].gameState === GameState.CHOOSING_WHITE_CARDS) {
+		if (games[gameId].checkMancheComplete()) {
+			delete games[gameId].currentManche.playedWhiteCards[clientId];
+			const payLoad = {
+				'method': 'show-played-cards',
+				'playedCards': games[gameId].currentManche.playedWhiteCards,
+			}
+			sendBroadcastMessage(gameId, payLoad);
+		}
+	}
+
+	if (games[gameId].gameState === GameState.WATCHING_SCORES) {
+		if (games[gameId].checkAllPlayersReady()) {
+			games[gameId].newManche();
+			if (games[gameId].currentManche.master === clientId) {
+				games[gameId].currentManche.setNewMaster(Object.keys(games[gameId].players)[0]);
+			}
+			const payLoad = {
+				'method': 'new-manche',
+			}
+			sendBroadcastMessage(gameId, payLoad);
+		}
+	}
+
+	if (games[gameId].gameState === GameState.VOTING_SURVEY) {
+		if (games[gameId].currentManche.master === clientId) {
+			games[gameId].currentManche.setNewMaster(Object.keys(games[gameId].players)[0]);
+		}
+		if (games[gameId].checkAllPlayersReady()) {
+			if (games[gameId].surveyResult >= 0) {
+				console.log(games[gameId].surveyResult);
+				games[gameId].skipBlackCard();
+			}
+			games[gameId].resetSurveyCounter();
+			games[gameId].resetReadyPlayers();
+			const payLoad = {
+				'method': 'vote-skip-survey',
+				'blackCard': games[gameId].currentManche.blackCard,
+			}
+			sendBroadcastMessage(gameId, payLoad);
+		}
+	}
 }
 
 function checkStableConnection(clientId) {
@@ -426,7 +475,11 @@ function sendMessage(clientId, payLoad, connection) {
 		const payLoadError = {
 			'method': 'server-error',
 		}
-		connection.send(JSON.stringify(payLoadError));
+		try {
+			connection.send(JSON.stringify(payLoadError));
+		} catch (e) {
+			console.log(e);
+		}
 	}
 }
 

@@ -40,6 +40,10 @@ class Manche {
     changeBlackCard(blackCard) {
         this._blackCard = blackCard;
     }
+
+    setNewMaster (masterId) {
+        this._master = masterId;
+    }
 }
 
 module.exports = Manche;
