@@ -1,5 +1,8 @@
 const debugMode = true;
 
+const Game = require("./utils/Game");
+const Player = require("./utils/Player");
+
 const express = require("express");
 const http = require("http");
 const path = require("path");
@@ -7,10 +10,10 @@ const { v4: uuidv4 } = require('uuid');
 const websocketServer = require("websocket").server;
 
 const app = express();
-const serverPort = process.env.PORT || 9090;  // Usa una sola porta
-const server = http.createServer(app);  // Unico server HTTP per WebSocket e Express
+const serverPort = process.env.PORT || 9090;  // Single port. use render port or 9090
+const server = http.createServer(app);  // Single server HTTP for WebSocket and Express
 
-// Impostazione di Express
+// Express page settings
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
 app.get("/settings", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/settings.html")));
@@ -18,18 +21,13 @@ app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../cli
 app.get("/playing-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/playing-room.html")));
 app.get("/score", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/score.html")));
 
-// Avvia il server
+// Start server
 server.listen(serverPort, () => console.log(`Server listening on port ${serverPort}`));
 
-// Inizializza WebSocket sullo stesso server HTTP
+// Initialize WebSocket on HTTP server
 const wsServer = new websocketServer({
-    "httpServer": server,  // Usa lo stesso server HTTP per WebSocket
+    "httpServer": server,
 });
-
-// WebSocket handling...
-
-const Game = require("./utils/Game");
-const Player = require("./utils/Player");
 
 /*
 "hashMap" to store all clients connected, every client will be identified by a unique id and then I'll store an object for every
@@ -41,8 +39,6 @@ const connectedClients = {};
 "hashMap" to store all games, every game will be identified by a unique id and then I'll store an object for every game
 */
 const games = {};
-
-let connectionKey = '';
 
 wsServer.on("request", request => {
 	const connection = request.accept(null, request.origin);
@@ -57,12 +53,12 @@ wsServer.on("request", request => {
 			//unique id to identify the client that just connected
 			const clientId = uuidv4();
 			connectedClients[clientId] = {
-				"connection": connection,
-				"alive": true,
+				'connection': connection,
+				'alive': true,
 			};
 			const payLoad = {
-				"method": "connect",
-				"clientId": clientId,
+				'method': 'connect',
+				'clientId': clientId,
 			};
 			sendMessage(clientId, payLoad);
 		}
@@ -79,12 +75,12 @@ wsServer.on("request", request => {
 			} else {
 				const newClientId = uuidv4();
 				connectedClients[newClientId] = {
-					"connection": connection,
+					'connection': connection,
 				};
 				const payLoad = {
-					"method": "new-id-set",
-					"clientId": newClientId,
-					/* "hostId":  */
+					'method': 'new-id-set',
+					'clientId': newClientId,
+					/* 'hostId':  */
 				};
 				sendMessage(newClientId, payLoad);
 			}
@@ -92,16 +88,13 @@ wsServer.on("request", request => {
 
 		if (message.method === 'create') {
 			let clientId = message.clientId;
-			console.log(clientId);
 			let playersCards = message.playersCards;
 			let winsNumber = message.winsNumber;
 			let gameId = createGame(clientId, playersCards, winsNumber);
 			const payLoad = {
-				"method": "create",
-				"gameId": gameId,
-				"hostId": clientId,
+				'method': 'create',
+				'gameId': gameId,
 			};
-			console.log('Creo')
 			sendMessage(message.clientId, payLoad);
 		}
 
