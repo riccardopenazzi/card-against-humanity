@@ -23,8 +23,8 @@ class Game {
 		debugMode && console.log('Player added');   
 	}
 	
-	removePlayer(player) {
-		delete this._players[player.clientId];
+	removePlayer(playerId) {
+		delete this._players[playerId];
 	}
 
 	get players() {

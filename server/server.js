@@ -362,8 +362,25 @@ function checkClientsConnected() {
 			sendMessage(clientId, payLoad);
 		} else {
 			console.log(clientId, ' disconnected');
+			Object.keys(games).forEach(gameId => {
+				if (games[gameId].players.hasOwnProperty(clientId)) {
+					if (games[gameId].hostId == clientId) {
+						//kick out all players
+						Object.keys(games[gameId].players).forEach(playerId => {
+							const payLoad = {
+								'method': 'server-error',
+							}
+							sendBroadcastMessage(gameId, payLoad);
+						});
+					} else {
+						//kick out only that player
+						games[gameId].removePlayer(clientId);
+					}
+				}
+			});
+			delete connectedClients[clientId];
 		}
-	})
+	});
 }
 
 function checkStableConnection(clientId) {
