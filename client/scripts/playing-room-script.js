@@ -71,6 +71,7 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'play-card') {
         paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+        btnSkipCard.style.display = 'none';
     }
 
     if (message.method === 'show-played-cards') {
@@ -79,11 +80,14 @@ webSocket.onmessage = receivedMessage => {
         playedCards = Object.values(message.playedCards);
         showSingleCard(playedCards.pop());
         const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster && playedCards.length > 0) {
-            document.getElementById('btn-next-card').style.display = 'block';
-        } else if (isMaster) {
-            document.getElementById('btn-show-choose-winner').style.display = 'block';
-        }
+        if (isMaster) {
+            btnSkipCard.style.display = 'none';
+            if (playedCards.length > 0) {
+                document.getElementById('btn-next-card').style.display = 'block';
+            } else {
+                document.getElementById('btn-show-choose-winner').style.display = 'block';
+            }
+         }
     }
 
     if (message.method === 'show-next-card') {
