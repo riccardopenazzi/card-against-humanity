@@ -13,10 +13,14 @@ btnCreate.addEventListener('click', event => {
 });
 
 btnJoin.addEventListener('click', event => {
-	const payLoad = {
-		'method': 'connect',
+	if (webSocket.readyState === WebSocket.OPEN) {
+		const payLoad = {
+			'method': 'connect',
+		};
+		webSocket.send(JSON.stringify(payLoad));
+	} else {
+		alert("Connessione WebSocket non disponibile, potrebbero esserci problemi dovuti alla rete. Ricarica la pagina e riprova.");
 	}
-	webSocket.send(JSON.stringify(payLoad));
 });
 
 inputCode.addEventListener('input', () => {

@@ -1,8 +1,6 @@
-/* import { webSocket } from "./main-script.js"; */
-
 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 const webSocketPort = window.location.port;
-export let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
 
 const debugMode = true;
 
@@ -13,6 +11,19 @@ let showError = document.getElementById('show-error');
 let gameStats = document.getElementById('game-stats');
 let playerUsername = document.getElementById('player-username');
 
+webSocket.onopen = () => {
+    const clientId = sessionStorage.getItem('clientId');
+    if (!clientId) {
+       window.location.href = '/';
+    } else {
+        const payLoad = {
+            'method': 'connect-again',
+            'clientId': clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+}
+
 btnConfirmUsername.addEventListener('click', event => {
     event.preventDefault();
     showError.innerText = '';
@@ -21,10 +32,10 @@ btnConfirmUsername.addEventListener('click', event => {
         const gameId = sessionStorage.getItem('gameId');
         const clientId = sessionStorage.getItem('clientId');
         const payLoad = {
-            "method": "join",
-            "clientId": clientId,
-            "gameId": gameId,
-            "username": username,
+            'method': 'join',
+            'clientId': clientId,
+            'gameId': gameId,
+            'username': username,
         };
         webSocket.send(JSON.stringify(payLoad));
     } else {
@@ -32,48 +43,11 @@ btnConfirmUsername.addEventListener('click', event => {
     }
 });
 
-webSocket.onopen = () => {
-    const clientId = sessionStorage.getItem('clientId');
-    if (!clientId) {
-        debugMode && console.log('Client id not set');
-        const payLoad = {
-            "method": "connect"
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    } else {
-        debugMode && console.log('ClientId already set');
-        const payLoad = {
-            "method": "connect-again",
-            "clientId": clientId,
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-}
-
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
-    console.log(message);
+    debugMode && console.log(message);
 
-    if (message.method === 'new-id-set') {
-        sessionStorage.setItem('clientId', message.clientId);
-        console.log("new clientId set successfully ", sessionStorage.getItem('clientId'));
-        const payLoad = {
-            "method": "create",
-            "clientId": sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-
-   /*  if (message.method === 'create') {
-        sessionStorage.setItem('gameId', message.gameId);
-        sessionStorage.setItem('hostId', message.hostId);
-        const payLoad = {
-            "method": "connect-again",
-            "clientId": sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    } */
-
+    /*If clients receive this message it means it has been reconnected, if it's the host its game control are painted */
     if (message.method === 'reconnected') {
         if (sessionStorage.getItem('hostId')) {
             createDivGameCode(title);
@@ -123,6 +97,10 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'start-game') {
         window.location.href = '/playing-room';
+    }
+
+    if (message.method === 'invalid-clientId') {
+        window.location.href = '/';
     }
 
     if (message.method === 'check-connection') {

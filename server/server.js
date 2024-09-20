@@ -49,6 +49,10 @@ wsServer.on("request", request => {
 		const message = JSON.parse(receivedMessage.utf8Data);
 		debugMode && console.log(message);
 
+		/*
+		If servers receives this message it means a new client wants to create a connection so it generates a new unique clientId 
+		and creates a new entry in connectedClients and finally send this info to the client
+		*/
 		if (message.method === 'connect') {
 			//unique id to identify the client that just connected
 			const clientId = uuidv4();
@@ -73,16 +77,10 @@ wsServer.on("request", request => {
 				}
 				sendMessage(clientId, payLoad);
 			} else {
-				const newClientId = uuidv4();
-				connectedClients[newClientId] = {
-					'connection': connection,
-				};
 				const payLoad = {
-					'method': 'new-id-set',
-					'clientId': newClientId,
-					/* 'hostId':  */
-				};
-				sendMessage(newClientId, payLoad);
+					'method': 'invalid-clientId',
+				}
+				sendMessage(clientId, payLoad);
 			}
 		}
 
