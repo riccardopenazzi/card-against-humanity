@@ -1,4 +1,21 @@
-import { webSocket } from "./main-script.js";
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const webSocketPort = window.location.port;
+let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+
+const debugMode = true;
+
+webSocket.onopen = () => {
+    const clientId = sessionStorage.getItem('clientId');
+    if (!clientId) {
+       window.location.href = '/';
+    } else {
+        const payLoad = {
+            'method': 'connect-again',
+            'clientId': clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+}
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
@@ -23,6 +40,22 @@ webSocket.onmessage = receivedMessage => {
     if (message.method === 'counter-ready-players') {
         document.getElementById('player-counter').innerText = '';
         document.getElementById('player-counter').innerText = 'Giocatori pronti: ' + message.readyPlayers;
+    }
+
+    if (message.method === 'check-connection') {
+        const payLoad = {
+            'method': 'check-connection',
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+
+    if (message.method === 'invalid-clientId') {
+        window.location.href = '/';
+    }
+
+    if (message.method === 'server-error') {
+        window.location.href = '/';
     }
 
 }

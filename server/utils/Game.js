@@ -1,4 +1,5 @@
 const Manche = require("./Manche");
+const GameState = require("./gameStates");
 
 let debugMode = true;
 class Game {
@@ -11,7 +12,7 @@ class Game {
 		this._blackCards = [];
 		this._whiteCards = [];
 		this._startCardNumber = startCardNumber;
-		this._gameState = 'waiting-players';
+		this._gameState = GameState.WAITING_FOR_PLAYERS;
 		this._targetScore = parseInt(targetScore);
 		this._readyPlayersCounter = 0;
 		this._surveyCounter = 0;
@@ -23,12 +24,8 @@ class Game {
 		debugMode && console.log('Player added');   
 	}
 	
-	removePlayer(player) {
-		/* const playerIndex = this._players.indexOf(player);
-		if (playerIndex !== -1) {
-			this._players.splice(playerIndex, 1);
-			debugMode && console.log('Player removed');
-		} */
+	removePlayer(playerId) {
+		delete this._players[playerId];
 	}
 
 	get players() {
@@ -76,7 +73,6 @@ class Game {
 		Object.keys(this._players).forEach(player => {
 			this._players[player].initPlayerCards(this._whiteCards.splice(-this._startCardNumber));
 		});
-		this._gameState = 'waiting-white-cards';
 	}
 
 	checkMancheComplete() {
@@ -146,6 +142,10 @@ class Game {
 
 	skipBlackCard() {
 		this.currentManche.changeBlackCard(this._blackCards.pop());
+	}
+
+	updateGameState(gameState) {
+		this._gameState = gameState;
 	}
 
 	#initBlackDeck() {

@@ -1,4 +1,8 @@
-import { webSocket } from "./main-script.js";
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const webSocketPort = window.location.port;
+let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+
+const debugMode = true;
 
 let btnNextCard = document.getElementById('btn-next-card');
 let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
@@ -8,6 +12,19 @@ let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
 
 let playedCards = [];
+
+webSocket.onopen = () => {
+    const clientId = sessionStorage.getItem('clientId');
+    if (!clientId) {
+       window.location.href = '/';
+    } else {
+        const payLoad = {
+            'method': 'connect-again',
+            'clientId': clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     btnNextCard.addEventListener('click', () => {
@@ -71,6 +88,7 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'play-card') {
         paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+        btnSkipCard.style.display = 'none';
     }
 
     if (message.method === 'show-played-cards') {
@@ -80,14 +98,19 @@ webSocket.onmessage = receivedMessage => {
         showSingleCard(playedCards.pop());
         const isMaster = (sessionStorage.getItem('master') === 'true');
         if (isMaster) {
-            document.getElementById('btn-next-card').style.display = 'block';
-        }
+            btnSkipCard.style.display = 'none';
+            if (playedCards.length > 0) {
+                document.getElementById('btn-next-card').style.display = 'block';
+            } else {
+                document.getElementById('btn-show-choose-winner').style.display = 'block';
+            }
+         }
     }
 
     if (message.method === 'show-next-card') {
         showSingleCard(playedCards.pop());
         const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster) {
+        if (isMaster && playedCards.length == 0) {
             document.getElementById('btn-next-card').style.display = 'none';
             document.getElementById('btn-show-choose-winner').style.display = 'block';
         }
@@ -125,6 +148,22 @@ webSocket.onmessage = receivedMessage => {
         }
         webSocket.send(JSON.stringify(payLoad));
     }
+
+    if (message.method === 'check-connection') {
+        const payLoad = {
+            'method': 'check-connection',
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+
+    if (message.method === 'invalid-clientId') {
+        window.location.href = '/';
+    }
+
+    if (message.method === 'server-error') {
+        window.location.href = '/';
+    }
 }
 
 function requestCardList() {
@@ -140,6 +179,7 @@ function fillCardList(cardList) {
     let frame = document.getElementById('frame');
     let cardListDiv = document.createElement('div');
     cardListDiv.classList.add('scrollable-cards');
+    createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
     cardList.reverse().forEach((card, index) => {
         let cardDiv = document.createElement('div');
@@ -158,6 +198,7 @@ function fillMasterCardList(playedCards) {
     frame.innerHTML = '';
     let cardListDiv = document.createElement('div');
     cardListDiv.classList.add('scrollable-cards');
+    createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
     Object.entries(playedCards).forEach(entry => {
         const [clientId, cardText] = entry;
@@ -264,4 +305,36 @@ function createChooseWinnermBtn(clientId) {
         webSocket.send(JSON.stringify(payLoad));
     });
     return btn
+}
+
+function createScrollFeature(target) {
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    target.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - target.offsetLeft;
+        scrollLeft = target.scrollLeft;
+        target.classList.add('grabbing');
+        document.body.classList.add('no-select');
+    });
+
+    target.addEventListener('mouseleave', () => {
+        isDown = false;
+        document.body.classList.add('no-select');
+    });
+
+    target.addEventListener('mouseup', () => {
+        isDown = false;
+        document.body.classList.add('no-select');
+    });
+
+    target.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - target.offsetLeft;
+        const walk = (x - startX) * 1.1;
+        target.scrollLeft = scrollLeft - walk;
+    });
 }

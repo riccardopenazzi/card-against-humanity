@@ -1,4 +1,8 @@
-import { webSocket } from "./main-script.js";
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const webSocketPort = window.location.port;
+let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+
+const debugMode = true;
 
 let txtUsername = document.getElementById('txt-username');
 let title = document.getElementById('title');
@@ -7,21 +11,18 @@ let showError = document.getElementById('show-error');
 let gameStats = document.getElementById('game-stats');
 let playerUsername = document.getElementById('player-username');
 
-/* document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('hostId')) {
-        createDivGameCode(title);
-        createDivBtnStart();
-        document.getElementById('btn-start-game').addEventListener('click', e => {
-            const payLoad = {
-                'method': 'start-game',
-                'gameId': sessionStorage.getItem('gameId'),
-            }
-            webSocket.send(JSON.stringify(payLoad));
-        });
+webSocket.onopen = () => {
+    const clientId = sessionStorage.getItem('clientId');
+    if (!clientId) {
+       window.location.href = '/';
+    } else {
+        const payLoad = {
+            'method': 'connect-again',
+            'clientId': clientId,
+        }
+        webSocket.send(JSON.stringify(payLoad));
     }
-
-    txtUsername.addEventListener('input', inputEventAction);
-}); */
+}
 
 btnConfirmUsername.addEventListener('click', event => {
     event.preventDefault();
@@ -31,10 +32,10 @@ btnConfirmUsername.addEventListener('click', event => {
         const gameId = sessionStorage.getItem('gameId');
         const clientId = sessionStorage.getItem('clientId');
         const payLoad = {
-            "method": "join",
-            "clientId": clientId,
-            "gameId": gameId,
-            "username": username,
+            'method': 'join',
+            'clientId': clientId,
+            'gameId': gameId,
+            'username': username,
         };
         webSocket.send(JSON.stringify(payLoad));
     } else {
@@ -44,28 +45,9 @@ btnConfirmUsername.addEventListener('click', event => {
 
 webSocket.onmessage = receivedMessage => {
     const message = JSON.parse(receivedMessage.data);
-    console.log(message);
+    debugMode && console.log(message);
 
-    if (message.method === 'new-id-set') {
-        sessionStorage.setItem('clientId', message.clientId);
-        console.log("new clientId set successfully ", sessionStorage.getItem('clientId'));
-        const payLoad = {
-            "method": "create",
-            "clientId": sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-
-    if (message.method === 'create') {
-        sessionStorage.setItem('gameId', message.gameId);
-        sessionStorage.setItem('hostId', message.hostId);
-        const payLoad = {
-            "method": "connect-again",
-            "clientId": sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-
+    /*If clients receive this message it means it has been reconnected, if it's the host its game control are painted */
     if (message.method === 'reconnected') {
         if (sessionStorage.getItem('hostId')) {
             createDivGameCode(title);
@@ -95,6 +77,8 @@ webSocket.onmessage = receivedMessage => {
                 playerUsername.innerText += '\n\nAttendi che l\'host avvii la partita'
             }
             txtUsername.removeEventListener('input', inputEventAction);
+            txtUsername.value = '';
+            txtUsername.setAttribute('disabled', 'true');
             btnConfirmUsername.disabled = true;
         }
         let playerUl = document.getElementById('players-list');
@@ -113,6 +97,23 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'start-game') {
         window.location.href = '/playing-room';
+    }
+
+    
+    if (message.method === 'check-connection') {
+        const payLoad = {
+            'method': 'check-connection',
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    }
+    
+    if (message.method === 'invalid-clientId') {
+        window.location.href = '/';
+    }
+    
+    if (message.method === 'server-error') {
+        window.location.href = '/';
     }
 }
 
