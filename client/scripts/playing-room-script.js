@@ -1,8 +1,6 @@
-/* import { webSocket } from "./main-script.js"; */
-
 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 const webSocketPort = window.location.port;
-export let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
 
 const debugMode = true;
 
@@ -18,16 +16,11 @@ let playedCards = [];
 webSocket.onopen = () => {
     const clientId = sessionStorage.getItem('clientId');
     if (!clientId) {
-        debugMode && console.log('Client id not set');
-        const payLoad = {
-            "method": "connect"
-        }
-        webSocket.send(JSON.stringify(payLoad));
+       window.location.href = '/';
     } else {
-        debugMode && console.log('ClientId already set');
         const payLoad = {
-            "method": "connect-again",
-            "clientId": clientId,
+            'method': 'connect-again',
+            'clientId': clientId,
         }
         webSocket.send(JSON.stringify(payLoad));
     }
@@ -154,6 +147,10 @@ webSocket.onmessage = receivedMessage => {
             'gameId': sessionStorage.getItem('gameId'),
         }
         webSocket.send(JSON.stringify(payLoad));
+    }
+
+    if (message.method === 'invalid-clientId') {
+        window.location.href = '/';
     }
 
     if (message.method === 'check-connection') {
