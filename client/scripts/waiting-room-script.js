@@ -95,6 +95,8 @@ webSocket.onmessage = receivedMessage => {
                 playerUsername.innerText += '\n\nAttendi che l\'host avvii la partita'
             }
             txtUsername.removeEventListener('input', inputEventAction);
+            txtUsername.value = '';
+            txtUsername.setAttribute('disabled', 'true');
             btnConfirmUsername.disabled = true;
         }
         let playerUl = document.getElementById('players-list');
