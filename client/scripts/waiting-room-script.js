@@ -99,16 +99,21 @@ webSocket.onmessage = receivedMessage => {
         window.location.href = '/playing-room';
     }
 
-    if (message.method === 'invalid-clientId') {
-        window.location.href = '/';
-    }
-
+    
     if (message.method === 'check-connection') {
         const payLoad = {
             'method': 'check-connection',
             'clientId': sessionStorage.getItem('clientId'),
         }
         webSocket.send(JSON.stringify(payLoad));
+    }
+    
+    if (message.method === 'invalid-clientId') {
+        window.location.href = '/';
+    }
+    
+    if (message.method === 'server-error') {
+        window.location.href = '/';
     }
 }
 

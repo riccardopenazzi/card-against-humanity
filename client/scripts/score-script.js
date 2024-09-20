@@ -54,6 +54,10 @@ webSocket.onmessage = receivedMessage => {
         window.location.href = '/';
     }
 
+    if (message.method === 'server-error') {
+        window.location.href = '/';
+    }
+
 }
 
 function showScores(scores) {

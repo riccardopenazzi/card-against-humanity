@@ -64,7 +64,7 @@ wsServer.on("request", request => {
 				'method': 'connect',
 				'clientId': clientId,
 			};
-			sendMessage(clientId, payLoad);
+			sendMessage(clientId, payLoad, connection);
 		}
 
 		if (message.method === 'connect-again') {
@@ -75,17 +75,25 @@ wsServer.on("request", request => {
 				const payLoad = {
 					'method': 'reconnected',
 				}
-				sendMessage(clientId, payLoad);
+				sendMessage(clientId, payLoad, connection);
 			} else {
+				console.log('Invalido')
 				const payLoad = {
 					'method': 'invalid-clientId',
 				}
-				sendMessage(clientId, payLoad);
+				connection.send(JSON.stringify(payLoad));
 			}
 		}
 
 		if (message.method === 'create') {
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
 			let playersCards = message.playersCards;
 			let winsNumber = message.winsNumber;
 			let gameId = createGame(clientId, playersCards, winsNumber);
@@ -93,24 +101,38 @@ wsServer.on("request", request => {
 				'method': 'create',
 				'gameId': gameId,
 			};
-			sendMessage(message.clientId, payLoad);
+			sendMessage(message.clientId, payLoad, connection);
 		}
 
 		if (message.method === 'verify-game-code') {
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
 			let gameCode = message.gameCode;
 			const payLoad = {
 				'method': 'verify-game-code',
 				'gameCode': gameCode,
 				'result': isGameCodeValid(gameCode) ? 'valid' : 'invalid',
 			};
-			sendMessage(clientId, payLoad);
+			sendMessage(clientId, payLoad, connection);
 		}
 
 		if (message.method === 'join') {
-			let username = message.username;
-			let gameId = message.gameId;
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
+			let gameId = message.gameId;
+			let username = message.username;
 			if (checkUniqueUsername(gameId, username)) {
 				let player = new Player(clientId, username);
 				games[gameId].addPlayer(player);
@@ -121,12 +143,12 @@ wsServer.on("request", request => {
 					'clientId': clientId,
 					'username': username,
 				};
-				sendBroadcastMessage(gameId, payLoad);
+				sendBroadcastMessage(gameId, payLoad, connection);
 			} else {
 				const payLoad = {
 					'method': 'duplicated-username',
 				}
-				sendMessage(clientId, payLoad);
+				sendMessage(clientId, payLoad, connection);
 			}
 		}
 
@@ -136,11 +158,18 @@ wsServer.on("request", request => {
 			const payLoad = {
 				'method': 'start-game',
 			}
-			sendBroadcastMessage(gameId, payLoad);
+			sendBroadcastMessage(gameId, payLoad, connection);
 		}
 
 		if (message.method === 'start-manche') {
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
 			let gameId = message.gameId;
 			let allPlayersCompleted = games[gameId].checkAllPlayersCompletedManche();
 			const payLoad = {
@@ -151,22 +180,36 @@ wsServer.on("request", request => {
 				'allPlayersCompleted': allPlayersCompleted,
 				'playedCards': games[gameId].currentManche.playedWhiteCards,
 			}
-			sendMessage(clientId, payLoad);
+			sendMessage(clientId, payLoad, connection);
 		}
 
 		if (message.method === 'req-player-cards') {
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
 			let gameId = message.gameId;
 			let playerCards = games[gameId].players[clientId].playerCards;
 			const payLoad = {
 				'method': 'req-player-cards',
 				'playerCards': playerCards,
 			}
-			sendMessage(clientId, payLoad);
+			sendMessage(clientId, payLoad, connection);
 		}
 
 		if (message.method === 'play-card') {
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
 			let gameId = message.gameId;
 			let cardText = message.cardText;
 			let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
@@ -175,13 +218,13 @@ wsServer.on("request", request => {
 			const payLoad = {
 				'method': 'play-card',
 			}
-			sendMessage(clientId, payLoad);
+			sendMessage(clientId, payLoad, connection);
 			if (games[gameId].checkMancheComplete()) {
 				const payLoad = {
 					'method': 'show-played-cards',
 					'playedCards': games[gameId].currentManche.playedWhiteCards,
 				}
-				sendBroadcastMessage(gameId, payLoad);
+				sendBroadcastMessage(gameId, payLoad, connection);
 			}
 		}
 
@@ -190,7 +233,7 @@ wsServer.on("request", request => {
 			const payLoad = {
 				'method': 'show-next-card',
 			}
-			sendBroadcastMessage(gameId, payLoad);
+			sendBroadcastMessage(gameId, payLoad, connection);
 		}
 
 		if (message.method === 'go-to-choosing-winner') {
@@ -199,7 +242,7 @@ wsServer.on("request", request => {
 				'method': 'choosing-winner',
 				'playedCards': games[gameId].currentManche.playedWhiteCards,
 			}
-			sendBroadcastMessage(gameId, payLoad);
+			sendBroadcastMessage(gameId, payLoad, connection);
 		}
 
 		if (message.method === 'choosing-winner') {
@@ -214,25 +257,32 @@ wsServer.on("request", request => {
 					'method': 'win',
 					'winner': games[gameId].players[winner].username,
 				}
-				sendBroadcastMessage(gameId, payLoad);
+				sendBroadcastMessage(gameId, payLoad, connection);
 			} else {
 				//nobody has won
 				const payLoad = {
 					'method': 'watch-score',
 					'winner': games[gameId].players[winner].username,
 				}
-				sendBroadcastMessage(gameId, payLoad);
+				sendBroadcastMessage(gameId, payLoad, connection);
 			}
 		}
 
 		if (message.method === 'req-score') {
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
 			let gameId = message.gameId;
 			const payLoad = {
 				'method': 'req-score',
 				'score': games[gameId].getScores(),
 			}
-			sendMessage(clientId, payLoad);
+			sendMessage(clientId, payLoad, connection);
 		}
 
 		if (message.method === 'new-manche') {
@@ -243,18 +293,25 @@ wsServer.on("request", request => {
 				const payLoad = {
 					'method': 'new-manche',
 				}
-				sendBroadcastMessage(gameId, payLoad);
+				sendBroadcastMessage(gameId, payLoad, connection);
 			} else {
 				const payLoad = {
 					'method': 'counter-ready-players',
 					'readyPlayers': games[gameId].readyPlayers,
 				}
-				sendBroadcastMessage(gameId, payLoad);
+				sendBroadcastMessage(gameId, payLoad, connection);
 			}
 		}
 
 		if (message.method === 'check-connection') {
 			let clientId = message.clientId;
+			if (!checkStableConnection(clientId)) {
+				const payLoad = {
+					'method': 'invalid-clientId',
+				}
+				connection.send(JSON.stringify(payLoad));
+				return
+			}
 			connectedClients[clientId].alive = true;
 		}
 
@@ -265,7 +322,7 @@ wsServer.on("request", request => {
 			const payLoad = {
 				'method': 'req-black-card-change',
 			}
-			sendBroadcastMessage(gameId, payLoad);
+			sendBroadcastMessage(gameId, payLoad, connection);
 		}
 
 		if (message.method === 'vote-skip-survey') {
@@ -286,7 +343,7 @@ wsServer.on("request", request => {
 					'method': 'vote-skip-survey',
 					'blackCard': games[gameId].currentManche.blackCard,
 				}
-				sendBroadcastMessage(gameId, payLoad);
+				sendBroadcastMessage(gameId, payLoad, connection);
 			}
 		}
 	});
@@ -310,7 +367,6 @@ function checkClientsConnected() {
 }
 
 function checkStableConnection(clientId) {
-	console.log(connectedClients.hasOwnProperty(clientId));
 	return connectedClients.hasOwnProperty(clientId);
 }
 
@@ -339,15 +395,22 @@ function isGameIdExisting(gameId) {
 	return gameId in games;
 }
 
-function sendBroadcastMessage(gameId, payLoad) {
+function sendBroadcastMessage(gameId, payLoad, connection) {
 	Object.keys(games[gameId].players).forEach(clientId => {
-		sendMessage(clientId, payLoad);
+		sendMessage(clientId, payLoad, connection);
 	});
 }
 
-function sendMessage(clientId, payLoad) {
-	const connection = connectedClients[clientId].connection;
-	connection.send(JSON.stringify(payLoad));
+function sendMessage(clientId, payLoad, connection) {
+	try {
+		const connection = connectedClients[clientId].connection;
+		connection.send(JSON.stringify(payLoad));
+	} catch (error) {
+		const payLoadError = {
+			'method': 'server-error',
+		}
+		connection.send(JSON.stringify(payLoadError));
+	}
 }
 
 function checkUniqueUsername(gameId, username) {

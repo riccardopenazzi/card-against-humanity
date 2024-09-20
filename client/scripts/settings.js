@@ -66,4 +66,12 @@ webSocket.onmessage = receivedMessage => {
         }
         webSocket.send(JSON.stringify(payLoad));
     }
+
+    if (message.method === 'invalid-clientId') {
+        window.location.href = '/';
+    }
+
+    if (message.method === 'server-error') {
+        window.location.href = '/';
+    }
 }
