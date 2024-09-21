@@ -44,8 +44,8 @@ const games = {};
 
 wsServer.on("request", request => {
 	const connection = request.accept(null, request.origin);
-	connection.on("open", () => console.log("opened"));
-	connection.on("close", () => console.log("closed"));
+	connection.on("open", () => debugMode && console.log("opened"));
+	connection.on("close", () => debugMode && console.log("closed"));
 
 	connection.on("message", receivedMessage => {
 		const message = JSON.parse(receivedMessage.utf8Data);
@@ -60,7 +60,7 @@ wsServer.on("request", request => {
 			const clientId = uuidv4();
 			connectedClients[clientId] = {
 				'connection': connection,
-				'alive': true,
+				'alive': 'started',
 			};
 			const payLoad = {
 				'method': 'connect',
@@ -79,7 +79,6 @@ wsServer.on("request", request => {
 				}
 				sendMessage(clientId, payLoad, connection);
 			} else {
-				console.log('Invalido')
 				const payLoad = {
 					'method': 'invalid-clientId',
 				}
@@ -268,7 +267,6 @@ wsServer.on("request", request => {
 			let gameId = message.gameId;
 			let winner = message.winner;
 			games[gameId].players[winner].addPoint();
-			console.log(games[gameId].players[winner].score);
 			games[gameId].setMancheWinner(winner);
 			if (games[gameId].checkGameEnd()) {
 				//someone has won
@@ -336,7 +334,7 @@ wsServer.on("request", request => {
 				connection.send(JSON.stringify(payLoad));
 				return
 			}
-			console.log('Imposto a true ', clientId);
+			debugMode && console.log('Imposto a true ', clientId);
 			connectedClients[clientId].alive = true;
 		}
 
@@ -360,7 +358,6 @@ wsServer.on("request", request => {
 			}
 			if (games[gameId].checkAllPlayersReady()) {
 				if (games[gameId].surveyResult >= 0) {
-					console.log(games[gameId].surveyResult);
 					games[gameId].skipBlackCard();
 				}
 				games[gameId].resetSurveyCounter();
@@ -376,46 +373,61 @@ wsServer.on("request", request => {
 
 });
 
-const periodicallyCheck = setInterval(checkClientsConnected, 15000);
+const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
 function checkClientsConnected() {
 	if (!checking) {
-		console.log('controllo connessioni');
+		debugMode && console.log('controllo checking è false');
 		checking = true;
 		Object.keys(connectedClients).forEach(clientId => {
 			if (connectedClients[clientId].alive) {
 				connectedClients[clientId].alive = false;
+				connectedClients[clientId].retryCount = 0;
 				const payLoad = {
 					'method': 'check-connection',
 				}
 				sendMessage(clientId, payLoad);
+			} else if (connectedClients[clientId].alive === 'started') {
+				connectedClients[clientId].alive = true;
 			} else {
-				console.log(clientId, ' disconnected');
-				Object.keys(games).forEach(gameId => {
-					if (games[gameId].players.hasOwnProperty(clientId)) {
-						if (games[gameId].hostId == clientId) {
-							//kick out all players
-							Object.keys(games[gameId].players).forEach(playerId => {
-								const payLoad = {
-									'method': 'server-error',
-								}
-								sendBroadcastMessage(gameId, payLoad);
-							});
-						} else {
-							//kick out only that player
-							games[gameId].removePlayer(clientId);
-							handleDisconnection(gameId, clientId);
+				console.log('Retrying connection check for', clientId);
+        		connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
+				if (connectedClients[clientId].retryCount >= 3) {
+					console.log(clientId, ' disconnected after retries');
+					Object.keys(games).forEach(gameId => {
+						if (games[gameId].players.hasOwnProperty(clientId)) {
+							if (games[gameId].hostId == clientId) {
+								//kick out all players
+								Object.keys(games[gameId].players).forEach(playerId => {
+									const payLoad = {
+										'method': 'server-error',
+									}
+									sendBroadcastMessage(gameId, payLoad);
+								});
+							} else {
+								//kick out only that player
+								games[gameId].removePlayer(clientId);
+								handleDisconnection(gameId, clientId);
+							}
 						}
-					}
-				});
-				delete connectedClients[clientId];
+					});
+					delete connectedClients[clientId];
+				} else {
+					const payLoad = {
+						'method': 'check-connection',
+					};
+					sendMessage(clientId, payLoad);
+				}
 			}
 		});
 		checking = false;
+	} else {
+		debugMode && console.log('Controllerei ma checking è true')
 	}
 }
 
 function handleDisconnection(gameId, clientId) {
+	debugMode && console.log('Gestisco disconnessione');
 	if (games[gameId].gameState === GameState.CHOOSING_WHITE_CARDS) {
 		if (games[gameId].checkMancheComplete()) {
 			delete games[gameId].currentManche.playedWhiteCards[clientId];
@@ -446,7 +458,6 @@ function handleDisconnection(gameId, clientId) {
 		}
 		if (games[gameId].checkAllPlayersReady()) {
 			if (games[gameId].surveyResult >= 0) {
-				console.log(games[gameId].surveyResult);
 				games[gameId].skipBlackCard();
 			}
 			games[gameId].resetSurveyCounter();
@@ -458,6 +469,7 @@ function handleDisconnection(gameId, clientId) {
 			sendBroadcastMessage(gameId, payLoad);
 		}
 	}
+	debugMode && console.log('Fine gestione disconnessione');
 }
 
 function checkStableConnection(clientId) {
@@ -518,5 +530,4 @@ function checkUniqueUsername(gameId, username) {
 		}
 	}
 	return true;
-	
 }
