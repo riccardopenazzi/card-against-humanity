@@ -334,7 +334,7 @@ wsServer.on("request", request => {
 				connection.send(JSON.stringify(payLoad));
 				return
 			}
-			console.log('Imposto a true ', clientId);
+			debugMode && console.log('Imposto a true ', clientId);
 			connectedClients[clientId].alive = true;
 		}
 
@@ -377,7 +377,7 @@ const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
 function checkClientsConnected() {
 	if (!checking) {
-		console.log('controllo checking è false');
+		debugMode && console.log('controllo checking è false');
 		checking = true;
 		Object.keys(connectedClients).forEach(clientId => {
 			if (connectedClients[clientId].alive) {
@@ -422,12 +422,12 @@ function checkClientsConnected() {
 		});
 		checking = false;
 	} else {
-		console.log('Controllerei ma checking è true')
+		debugMode && console.log('Controllerei ma checking è true')
 	}
 }
 
 function handleDisconnection(gameId, clientId) {
-	console.log('Gestisco disconnessione');
+	debugMode && console.log('Gestisco disconnessione');
 	if (games[gameId].gameState === GameState.CHOOSING_WHITE_CARDS) {
 		if (games[gameId].checkMancheComplete()) {
 			delete games[gameId].currentManche.playedWhiteCards[clientId];
@@ -469,7 +469,7 @@ function handleDisconnection(gameId, clientId) {
 			sendBroadcastMessage(gameId, payLoad);
 		}
 	}
-	console.log('Fine gestione disconnessione');
+	debugMode && console.log('Fine gestione disconnessione');
 }
 
 function checkStableConnection(clientId) {
