@@ -11,6 +11,10 @@ Nota: Il server potrebbe richiedere qualche minuto per avviarsi, poiché è host
 
 Il gioco è **ancora in via di sviluppo**, e la versione attuale **non è stabile** ma comunque **giocabile**. Nuove funzionalità e miglioramenti sono in arrivo!
 
+## Ottimizzazione per dispositivi mobili
+
+Questo gioco è pensato principalmente per **dispositivi mobili** e attualmente **non è ancora ottimizzato per PC**. Alcune funzionalità, come lo scorrimento delle carte, **potrebbero non essere molto user-friendly** su desktop. Stiamo lavorando per migliorare l'esperienza anche su PC, ma al momento **si consiglia l'uso su dispositivi mobili** per una migliore esperienza di gioco.
+
 ## Segnalazione di bug
 
 Se riscontri bug o problemi durante il gioco, ti prego di aprire una [issue](https://github.com/riccardopenazzi/card-against-humanity/issues) su GitHub per aiutarmi a migliorare il progetto.
@@ -42,6 +46,10 @@ Note: The server may take a few minutes to start, as it is hosted on Render.
 ## Project Status
 
 The game is **still under development**, and the current version is **not stable** but **playable**. New features and improvements are on the way!
+
+## Mobile Optimization
+
+This game is primarily designed for **mobile devices** and is currently **not optimized for PC**. Some features, like card scrolling, **may not be very user-friendly** on desktop. We're working on improving the desktop experience, but for now, it is **recommended to use mobile devices** for the best gaming experience.
 
 ## Bug Reporting
 
