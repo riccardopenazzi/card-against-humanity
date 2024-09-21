@@ -60,7 +60,7 @@ wsServer.on("request", request => {
 			const clientId = uuidv4();
 			connectedClients[clientId] = {
 				'connection': connection,
-				'alive': true,
+				'alive': 'started',
 			};
 			const payLoad = {
 				'method': 'connect',
@@ -373,11 +373,11 @@ wsServer.on("request", request => {
 
 });
 
-const periodicallyCheck = setInterval(checkClientsConnected, 5000);
+const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
 function checkClientsConnected() {
 	if (!checking) {
-		console.log('controllo checking è true');
+		console.log('controllo checking è false');
 		checking = true;
 		Object.keys(connectedClients).forEach(clientId => {
 			if (connectedClients[clientId].alive) {
@@ -386,31 +386,42 @@ function checkClientsConnected() {
 					'method': 'check-connection',
 				}
 				sendMessage(clientId, payLoad);
+			} else if (connectedClients[clientId].alive === 'started') {
+				connectedClients[clientId].alive = true;
 			} else {
-				console.log(clientId, ' disconnected');
-				Object.keys(games).forEach(gameId => {
-					if (games[gameId].players.hasOwnProperty(clientId)) {
-						if (games[gameId].hostId == clientId) {
-							//kick out all players
-							Object.keys(games[gameId].players).forEach(playerId => {
-								const payLoad = {
-									'method': 'server-error',
-								}
-								sendBroadcastMessage(gameId, payLoad);
-							});
-						} else {
-							//kick out only that player
-							games[gameId].removePlayer(clientId);
-							handleDisconnection(gameId, clientId);
+				console.log('Retrying connection check for', clientId);
+        		connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
+				if (connectedClients[clientId].retryCount >= 3) {
+					console.log(clientId, ' disconnected after retries');
+					Object.keys(games).forEach(gameId => {
+						if (games[gameId].players.hasOwnProperty(clientId)) {
+							if (games[gameId].hostId == clientId) {
+								//kick out all players
+								Object.keys(games[gameId].players).forEach(playerId => {
+									const payLoad = {
+										'method': 'server-error',
+									}
+									sendBroadcastMessage(gameId, payLoad);
+								});
+							} else {
+								//kick out only that player
+								games[gameId].removePlayer(clientId);
+								handleDisconnection(gameId, clientId);
+							}
 						}
-					}
-				});
-				delete connectedClients[clientId];
+					});
+					delete connectedClients[clientId];
+				} else {
+					const payLoad = {
+						'method': 'check-connection',
+					};
+					sendMessage(clientId, payLoad);
+				}
 			}
 		});
 		checking = false;
 	} else {
-		console.log('Controllerei ma checking è false')
+		console.log('Controllerei ma checking è true')
 	}
 }
 
