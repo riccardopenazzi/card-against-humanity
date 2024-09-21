@@ -116,12 +116,27 @@ wsServer.on("request", request => {
 				return
 			}
 			let gameCode = message.gameCode;
-			const payLoad = {
-				'method': 'verify-game-code',
-				'gameCode': gameCode,
-				'result': isGameCodeValid(gameCode) ? 'valid' : 'invalid',
-			};
-			sendMessage(clientId, payLoad, connection);
+			const isValid = isGameCodeValid(gameCode);
+			if (isValid && games[gameCode].gameState === GameState.WAITING_FOR_PLAYERS) {
+				const payLoad = {
+					'method': 'verify-game-code',
+					'gameCode': gameCode,
+					'result': 'valid',
+				}
+				sendMessage(clientId, payLoad, connection);
+			} else if (isValid && games[gameCode].gameState !== GameState.WAITING_FOR_PLAYERS) {
+				const payLoad = {
+					'method': 'game-already-started',
+				}
+				sendMessage(clientId, payLoad, connection);
+			} else {
+				const payLoad = {
+					'method': 'verify-game-code',
+					'gameCode': gameCode,
+					'result': 'invalid',
+				}
+				sendMessage(clientId, payLoad, connection);
+			}
 		}
 
 		if (message.method === 'join') {

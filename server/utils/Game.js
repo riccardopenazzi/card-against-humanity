@@ -551,10 +551,10 @@ class Game {
 			"Ciro il napoletano con un raudo in culo",
 			"Il naso di Maradona",
 			"Odorare di Napoli",
+			"11 settembre",
+			"Le emorroidi",
 		];
 	}
-
-	//TODO manches management
 }
 
 module.exports = Game;
