@@ -30,15 +30,16 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'req-score') {
-        showScores(message.score);
+        showScores(message.score, message.readyPlayers);
     }
 
     if (message.method === 'new-manche') {
+        sessionStorage.removeItem('hasVoted');
         window.location.href = '/playing-room';
     }
 
     if (message.method === 'counter-ready-players') {
-        document.getElementById('player-counter').innerText = '';
+        /* document.getElementById('player-counter').innerText = ''; */
         document.getElementById('player-counter').innerText = 'Giocatori pronti: ' + message.readyPlayers;
     }
 
@@ -60,7 +61,8 @@ webSocket.onmessage = receivedMessage => {
 
 }
 
-function showScores(scores) {
+function showScores(scores, readyPlayers) {
+    document.getElementById('player-counter').innerText = 'Giocatori pronti: ' + readyPlayers;
     let scoreRow = document.getElementById('score-row');
     scores.forEach(score => {
         let divUsername = document.createElement('div');
@@ -79,14 +81,18 @@ function showScores(scores) {
     let btn = document.createElement('button');
     btn.classList.add('btn-confirm', 'col-6', 'mt-5');
     btn.innerText = 'Conferma';
-    btn.addEventListener('click', e => {
+    if (!sessionStorage.getItem('hasVoted')) {
+        btn.addEventListener('click', e => {
+            sessionStorage.setItem('hasVoted', true);
+            btn.setAttribute('disabled', 'true');
+            const payLoad = {
+                'method': 'new-manche',
+                'gameId': sessionStorage.getItem('gameId'),
+            }
+            webSocket.send(JSON.stringify(payLoad));
+        });
+    } else {
         btn.setAttribute('disabled', 'true');
-        const payLoad = {
-            'method': 'new-manche',
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
+    }
     scoreRow.appendChild(btn);
-
 }

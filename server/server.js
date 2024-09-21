@@ -256,6 +256,7 @@ wsServer.on("request", request => {
 
 		if (message.method === 'go-to-choosing-winner') {
 			let gameId = message.gameId;
+			games[gameId].updateGameState(GameState.CHOOSING_WINNER);
 			const payLoad = {
 				'method': 'choosing-winner',
 				'playedCards': games[gameId].currentManche.playedWhiteCards,
@@ -296,10 +297,14 @@ wsServer.on("request", request => {
 				return
 			}
 			let gameId = message.gameId;
-			games[gameId].updateGameState(GameState.WATCHING_SCORES);
+			/* game state will be updated only first time someone makes this request */
+			if (games[gameId].gameState === GameState.CHOOSING_WINNER) {
+				games[gameId].updateGameState(GameState.WATCHING_SCORES);
+			}
 			const payLoad = {
 				'method': 'req-score',
 				'score': games[gameId].getScores(),
+				'readyPlayers': games[gameId].readyPlayers,
 			}
 			sendMessage(clientId, payLoad, connection);
 		}
