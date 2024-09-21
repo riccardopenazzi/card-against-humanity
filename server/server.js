@@ -373,7 +373,7 @@ wsServer.on("request", request => {
 
 });
 
-const periodicallyCheck = setInterval(checkClientsConnected, 15000);
+const periodicallyCheck = setInterval(checkClientsConnected, 5000);
 
 function checkClientsConnected() {
 	if (!checking) {
