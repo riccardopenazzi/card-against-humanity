@@ -44,8 +44,8 @@ const games = {};
 
 wsServer.on("request", request => {
 	const connection = request.accept(null, request.origin);
-	connection.on("open", () => console.log("opened"));
-	connection.on("close", () => console.log("closed"));
+	connection.on("open", () => debugMode && console.log("opened"));
+	connection.on("close", () => debugMode && console.log("closed"));
 
 	connection.on("message", receivedMessage => {
 		const message = JSON.parse(receivedMessage.utf8Data);
@@ -79,7 +79,6 @@ wsServer.on("request", request => {
 				}
 				sendMessage(clientId, payLoad, connection);
 			} else {
-				console.log('Invalido')
 				const payLoad = {
 					'method': 'invalid-clientId',
 				}
@@ -268,7 +267,6 @@ wsServer.on("request", request => {
 			let gameId = message.gameId;
 			let winner = message.winner;
 			games[gameId].players[winner].addPoint();
-			console.log(games[gameId].players[winner].score);
 			games[gameId].setMancheWinner(winner);
 			if (games[gameId].checkGameEnd()) {
 				//someone has won
@@ -360,7 +358,6 @@ wsServer.on("request", request => {
 			}
 			if (games[gameId].checkAllPlayersReady()) {
 				if (games[gameId].surveyResult >= 0) {
-					console.log(games[gameId].surveyResult);
 					games[gameId].skipBlackCard();
 				}
 				games[gameId].resetSurveyCounter();
@@ -380,7 +377,7 @@ const periodicallyCheck = setInterval(checkClientsConnected, 15000);
 
 function checkClientsConnected() {
 	if (!checking) {
-		console.log('controllo connessioni');
+		console.log('controllo checking è true');
 		checking = true;
 		Object.keys(connectedClients).forEach(clientId => {
 			if (connectedClients[clientId].alive) {
@@ -412,10 +409,13 @@ function checkClientsConnected() {
 			}
 		});
 		checking = false;
+	} else {
+		console.log('Controllerei ma checking è false')
 	}
 }
 
 function handleDisconnection(gameId, clientId) {
+	console.log('Gestisco disconnessione');
 	if (games[gameId].gameState === GameState.CHOOSING_WHITE_CARDS) {
 		if (games[gameId].checkMancheComplete()) {
 			delete games[gameId].currentManche.playedWhiteCards[clientId];
@@ -446,7 +446,6 @@ function handleDisconnection(gameId, clientId) {
 		}
 		if (games[gameId].checkAllPlayersReady()) {
 			if (games[gameId].surveyResult >= 0) {
-				console.log(games[gameId].surveyResult);
 				games[gameId].skipBlackCard();
 			}
 			games[gameId].resetSurveyCounter();
@@ -458,6 +457,7 @@ function handleDisconnection(gameId, clientId) {
 			sendBroadcastMessage(gameId, payLoad);
 		}
 	}
+	console.log('Fine gestione disconnessione');
 }
 
 function checkStableConnection(clientId) {
