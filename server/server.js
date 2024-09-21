@@ -382,6 +382,7 @@ function checkClientsConnected() {
 		Object.keys(connectedClients).forEach(clientId => {
 			if (connectedClients[clientId].alive) {
 				connectedClients[clientId].alive = false;
+				connectedClients[clientId].retryCount = 0;
 				const payLoad = {
 					'method': 'check-connection',
 				}
