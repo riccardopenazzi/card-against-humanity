@@ -1,4 +1,4 @@
-const debugMode = true;
+const debugMode = false;
 
 const Game = require("./utils/Game");
 const Player = require("./utils/Player");
@@ -12,6 +12,8 @@ const websocketServer = require("websocket").server;
 const app = express();
 const serverPort = process.env.PORT || 9090;  // Single port. use render port or 9090
 const server = http.createServer(app);  // Single server HTTP for WebSocket and Express
+
+let checking = false;
 
 // Express page settings
 app.use(express.static(path.join(__dirname, "../client")));
@@ -314,6 +316,7 @@ wsServer.on("request", request => {
 				connection.send(JSON.stringify(payLoad));
 				return
 			}
+			console.log('Imposto a true ', clientId);
 			connectedClients[clientId].alive = true;
 		}
 
@@ -353,38 +356,43 @@ wsServer.on("request", request => {
 
 });
 
-const periodicallyCheck = setInterval(checkClientsConnected, 2000);
+const periodicallyCheck = setInterval(checkClientsConnected, 15000);
 
 function checkClientsConnected() {
-	Object.keys(connectedClients).forEach(clientId => {
-		if (connectedClients[clientId].alive) {
-			connectedClients[clientId].alive = false;
-			const payLoad = {
-				'method': 'check-connection',
-			}
-			sendMessage(clientId, payLoad);
-		} else {
-			console.log(clientId, ' disconnected');
-			Object.keys(games).forEach(gameId => {
-				if (games[gameId].players.hasOwnProperty(clientId)) {
-					if (games[gameId].hostId == clientId) {
-						//kick out all players
-						Object.keys(games[gameId].players).forEach(playerId => {
-							const payLoad = {
-								'method': 'server-error',
-							}
-							sendBroadcastMessage(gameId, payLoad);
-						});
-					} else {
-						//kick out only that player
-						games[gameId].removePlayer(clientId);
-						handleDisconnection(gameId, clientId);
-					}
+	if (!checking) {
+		console.log('controllo connessioni');
+		checking = true;
+		Object.keys(connectedClients).forEach(clientId => {
+			if (connectedClients[clientId].alive) {
+				connectedClients[clientId].alive = false;
+				const payLoad = {
+					'method': 'check-connection',
 				}
-			});
-			delete connectedClients[clientId];
-		}
-	});
+				sendMessage(clientId, payLoad);
+			} else {
+				console.log(clientId, ' disconnected');
+				Object.keys(games).forEach(gameId => {
+					if (games[gameId].players.hasOwnProperty(clientId)) {
+						if (games[gameId].hostId == clientId) {
+							//kick out all players
+							Object.keys(games[gameId].players).forEach(playerId => {
+								const payLoad = {
+									'method': 'server-error',
+								}
+								sendBroadcastMessage(gameId, payLoad);
+							});
+						} else {
+							//kick out only that player
+							games[gameId].removePlayer(clientId);
+							handleDisconnection(gameId, clientId);
+						}
+					}
+				});
+				delete connectedClients[clientId];
+			}
+		});
+		checking = false;
+	}
 }
 
 function handleDisconnection(gameId, clientId) {
