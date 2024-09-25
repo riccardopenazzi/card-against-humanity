@@ -263,7 +263,12 @@ function handlePlayCard(message, connection) {
 	let cardText = message.cardText;
 	let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
 	let choosenCard = games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1)[0];
-	games[gameId].currentManche.addCard(clientId, choosenCard);
+	if (choosenCard === CardVariants.EMPTY_CARD) {
+		console.log( message.createdSentence);
+		games[gameId].currentManche.addCard(clientId, message.createdSentence);
+	} else {
+		games[gameId].currentManche.addCard(clientId, choosenCard);
+	}
 	const payLoad = {
 		'method': 'play-card',
 	}

@@ -31,6 +31,15 @@
     font-size: 18px;
 }
 
+.card.empty-card {
+    background-color: rgb(230, 146, 146);
+}
+
+textarea {
+    border-radius: 3px;
+    font-style: italic;
+}
+
 .single-card {
     opacity: 0;
     transform: translateY(20px);
