@@ -8,6 +8,7 @@ const http = require("http");
 const path = require("path");
 const { v4: uuidv4 } = require('uuid');
 const websocketServer = require("websocket").server;
+const MessageTypes = require('../shared/messageTypes');
 
 const app = express();
 const serverPort = process.env.PORT || 9090;  // Single port. use render port or 9090
@@ -16,6 +17,7 @@ const server = http.createServer(app);  // Single server HTTP for WebSocket and 
 let checking = false;
 
 // Express page settings
+app.use('/shared', express.static(path.join(__dirname, '../shared')));
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
 app.get("/settings", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/settings.html")));
@@ -42,6 +44,27 @@ const connectedClients = {};
 */
 const games = {};
 
+/*hashMap to store all possible events */
+const eventManager = {
+    [MessageTypes.CONNECT]: handleConnection,
+    [MessageTypes.CONNECT_AGAIN]: handleConnectAgain,
+    [MessageTypes.CREATE]: handleCreateGame,
+    [MessageTypes.VERIFY_GAME_CODE]: handleVerifyGameCode,
+    [MessageTypes.JOIN]: handleJoinGame,
+    [MessageTypes.START_GAME]: handleStartGame,
+    [MessageTypes.START_MANCHE]: handleStartManche,
+    [MessageTypes.REQ_PLAYER_CARDS]: handleRequestPlayerCards,
+    [MessageTypes.PLAY_CARD]: handlePlayCard,
+    [MessageTypes.SHOW_NEXT_CARD]: handleShowNextCard,
+    [MessageTypes.GO_TO_CHOOSING_WINNER]: handleGoToChoosingWinner,
+    [MessageTypes.CHOOSING_WINNER]: handleChoosingWinner,
+    [MessageTypes.REQ_SCORE]: handleRequestScore,
+    [MessageTypes.NEW_MANCHE]: handleNewManche,
+    [MessageTypes.CHECK_CONNECTION]: handleCheckConnection,
+    [MessageTypes.REQ_BLACK_CARD_CHANGE]: handleRequestBlackCardChange,
+    [MessageTypes.VOTE_SKIP_SURVEY]: handleVoteSkipSurvey,
+};
+
 wsServer.on("request", request => {
 	const connection = request.accept(null, request.origin);
 	connection.on("open", () => debugMode && console.log("opened"));
@@ -50,86 +73,18 @@ wsServer.on("request", request => {
 	connection.on("message", receivedMessage => {
 		const message = JSON.parse(receivedMessage.utf8Data);
 		debugMode && console.log(message);
-
-		/*
-		If servers receives this message it means a new client wants to create a connection so it generates a new unique clientId 
-		and creates a new entry in connectedClients and finally send this info to the client
-		*/
-		if (message.method === 'connect') {
-			handleConnection(connection);
-		}
-
-		if (message.method === 'connect-again') {
-			handleConnectAgain(message, connection);
-		}
-
-		if (message.method === 'create') {
-			handleCreateGame(message, connection);
-		}
-
-		if (message.method === 'verify-game-code') {
-			handleVerifyGameCode(message, connection);
-		}
-
-		if (message.method === 'join') {
-			handleJoinGame(message, connection);
-		}
-
-		if (message.method === 'start-game') {
-			handleStartGame(message, connection);
-		}
-
-		if (message.method === 'start-manche') {
-			handleStartManche(message, connection);
-		}
-
-		if (message.method === 'req-player-cards') {
-			handleRequestPlayerCards(message, connection);
-		}
-
-		if (message.method === 'play-card') {
-			handlePlayCard(message, connection);
-		}
-
-		if (message.method === 'show-next-card') {
-			handleShowNextCard(message, connection);
-		}
-
-		if (message.method === 'go-to-choosing-winner') {
-			handleGoToChoosingWinner(message, connection);
-		}
-
-		if (message.method === 'choosing-winner') {
-			handleChoosingWinner(message, connection);
-		}
-
-		if (message.method === 'req-score') {
-			handleRequestScore(message, connection);
-		}
-
-		if (message.method === 'new-manche') {
-			handleNewManche(message, connection);
-		}
-
-		if (message.method === 'check-connection') {
-			handleCheckConnection(message, connection);
-		}
-
-		/*Unpredictable events */
-
-		if (message.method === 'req-black-card-change') {
-			handleRequestBlackCardChange(message, connection);
-		}
-
-		if (message.method === 'vote-skip-survey') {
-			handleVoteSkipSurvey(message, connection);
+		const handler = eventManager[message.method];
+		if (handler) {
+			handler(message, connection);
+		} else {
+			console.log('Unknow method');
 		}
 	});
 
 });
 
 /* Functions */
-function handleConnection(connection) {
+function handleConnection(message, connection) {
 	//unique id to identify the client that just connected
 	const clientId = uuidv4();
 	connectedClients[clientId] = {
