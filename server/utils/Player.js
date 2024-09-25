@@ -18,7 +18,6 @@ class Player {
         return this._score;
     }
 
-    
     get playerCards() {
         return this._playerCards;
     }
@@ -32,6 +31,7 @@ class Player {
     }
 
     addNewCart(cart) {
+        console.log(this._playerCards);
         this._playerCards.push(cart);
     }
 }

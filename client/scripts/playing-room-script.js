@@ -181,13 +181,25 @@ function fillCardList(cardList) {
     cardListDiv.classList.add('scrollable-cards');
     createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
+    cardList.sort((a, b) => a === CardVariants.EMPTY_CARD ? 1 : -1); //always show empty card as first if present
     cardList.reverse().forEach((card, index) => {
         let cardDiv = document.createElement('div');
         cardDiv.classList.add('card');
-        let textDiv = document.createElement('div');
-        textDiv.innerText = card;
-        let confirmBtn = createConfirmBtn(card);
-        cardDiv.appendChild(textDiv);
+        let internalCardElement;
+        let confirmBtn;
+        if (card === CardVariants.EMPTY_CARD) {
+            internalCardElement = document.createElement('textarea');
+            internalCardElement.setAttribute('placeholder', 'Completa la carta');
+            internalCardElement.setAttribute('id', 'empty-card-input');
+            internalCardElement.rows = 8;
+            cardDiv.classList.add('empty-card');
+            confirmBtn =  createConfirmBtn(card, true);
+        } else {
+            internalCardElement = document.createElement('div');
+            internalCardElement.innerText = card;
+            confirmBtn = createConfirmBtn(card);
+        }
+        cardDiv.appendChild(internalCardElement);
         cardDiv.appendChild(confirmBtn);
         cardListDiv.appendChild(cardDiv);
     });
@@ -276,19 +288,33 @@ function showSkipCardSurvey() {
     internalSkipCardFrame.appendChild(btnContainer);
 }
 
-function createConfirmBtn(card) {
+function createConfirmBtn(card, emptyCard = false) {
     let btn = document.createElement('button');
     btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
     btn.innerText = 'Conferma';
-    btn.addEventListener('click', e => {
-        const payLoad = {
-            'method': 'play-card',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-            'cardText': card,
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
+    if (emptyCard) {
+        btn.addEventListener('click', e => {
+            console.log('EMPTY CARD');
+            const payLoad = {
+                'method': 'play-card',
+                'clientId': sessionStorage.getItem('clientId'),
+                'gameId': sessionStorage.getItem('gameId'),
+                'cardText': card,
+                'createdSentence': document.getElementById('empty-card-input').value,
+            }
+            webSocket.send(JSON.stringify(payLoad));
+        });
+    } else {
+        btn.addEventListener('click', e => {
+            const payLoad = {
+                'method': 'play-card',
+                'clientId': sessionStorage.getItem('clientId'),
+                'gameId': sessionStorage.getItem('gameId'),
+                'cardText': card,
+            }
+            webSocket.send(JSON.stringify(payLoad));
+        });
+    }
     return btn;
 }
 
@@ -337,4 +363,9 @@ function createScrollFeature(target) {
         const walk = (x - startX) * 1.1;
         target.scrollLeft = scrollLeft - walk;
     });
+}
+
+function emptyCardAction() {
+    let text = document.getElementById('empty-card-input');
+
 }

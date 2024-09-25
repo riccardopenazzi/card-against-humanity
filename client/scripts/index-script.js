@@ -59,6 +59,11 @@ webSocket.onmessage = receivedMessage => {
 		}
 	}
 
+	if (message.method === 'game-already-started') {
+        alert('Non puoi unirti ad una partita già iniziata');
+        window.location.href = '/';
+    }
+
 	/* Standard message used to show to ther server that the client is still connected, probably it's not too necesseray here */
 	if (message.method === 'check-connection') {
 		const payLoad = {

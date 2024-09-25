@@ -99,7 +99,6 @@ webSocket.onmessage = receivedMessage => {
         window.location.href = '/playing-room';
     }
 
-    
     if (message.method === 'check-connection') {
         const payLoad = {
             'method': 'check-connection',
