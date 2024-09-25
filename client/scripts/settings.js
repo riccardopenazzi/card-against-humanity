@@ -9,6 +9,7 @@ let winsInput = document.getElementById('win-number-range');
 let cardsValueIndicator = document.getElementById('player-cards-value');
 let winsValueIndicator = document.getElementById('win-number-value');
 let btnConfirmSettings = document.getElementById('btn-confirm-settings');
+let checkboxWhiteCardMode = document.getElementById('white-card-mode');
 
 document.addEventListener('DOMContentLoaded', () => {
     cardsValueIndicator.innerText = cardsInput.value;
@@ -47,6 +48,7 @@ webSocket.onmessage = receivedMessage => {
             'clientId': clientId,
             'playersCards': playersCard,
             'winsNumber': winsNumber,
+            'whiteCardMode': checkboxWhiteCardMode.checked,
         }
         webSocket.send(JSON.stringify(payLoad));
     }

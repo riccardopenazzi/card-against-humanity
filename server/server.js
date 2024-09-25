@@ -8,7 +8,7 @@ const http = require("http");
 const path = require("path");
 const { v4: uuidv4 } = require('uuid');
 const websocketServer = require("websocket").server;
-const MessageTypes = require('../shared/messageTypes');
+const { MessageTypes, CardVariants } = require('../shared/sharedCostants');
 
 const app = express();
 const serverPort = process.env.PORT || 9090;  // Single port. use render port or 9090
@@ -124,9 +124,12 @@ function handleCreateGame(message, connection) {
 		connection.send(JSON.stringify(payLoad));
 		return
 	}
-	let playersCards = message.playersCards;
-	let winsNumber = message.winsNumber;
-	let gameId = createGame(clientId, playersCards, winsNumber);
+	let vars = {};
+	vars.hostId = clientId;
+	vars.startCardNumber = message.playersCards;
+	vars.targetScore = message.winsNumber;
+	vars.whiteCardMode = message.whiteCardMode;
+	let gameId = createGame(vars);
 	const payLoad = {
 		'method': 'create',
 		'gameId': gameId,
@@ -501,12 +504,13 @@ function checkStableConnection(clientId) {
 	return connectedClients.hasOwnProperty(clientId);
 }
 
-function createGame(hostId,  playersCards, winsNumber) {
+function createGame(vars) {
 	let gameId = generateUniqueGameId();
 	while (isGameIdExisting(gameId)) {
 		gameId = generateUniqueGameId();
 	}
-	games[gameId] = new Game(gameId, hostId, playersCards, winsNumber);
+	vars.gameId = gameId;
+	games[gameId] = new Game(vars);
 	return gameId;
 }
 

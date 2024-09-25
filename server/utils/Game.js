@@ -1,21 +1,23 @@
 const Manche = require("./Manche");
 const GameState = require("./gameStates");
+const { CardVariants } = require('../../shared/sharedCostants');
 
 let debugMode = true;
 class Game {
-	constructor(gameId, hostId, startCardNumber, targetScore) {
-		this._gameId = gameId;
+	constructor(vars) {
+		this._gameId = vars.gameId;
 		this._players = {};
 		this._manches = [];
 		this._usernamesList = [];
-		this._hostId = hostId;
+		this._hostId = vars.hostId;
 		this._blackCards = [];
 		this._whiteCards = [];
-		this._startCardNumber = startCardNumber;
+		this._startCardNumber = vars.startCardNumber;
 		this._gameState = GameState.WAITING_FOR_PLAYERS;
-		this._targetScore = parseInt(targetScore);
+		this._targetScore = parseInt(vars.targetScore);
 		this._readyPlayersCounter = 0;
 		this._surveyCounter = 0;
+		this._whiteCardMode = vars.whiteCardMode;
 	}
 
 	addPlayer(player) {
@@ -72,6 +74,7 @@ class Game {
 		this._manches.push(new Manche(this._blackCards.pop(), this._hostId));
 		Object.keys(this._players).forEach(player => {
 			this._players[player].initPlayerCards(this._whiteCards.splice(-this._startCardNumber));
+			this._players[player].addNewCart(CardVariants.EMPTY_CARD);
 		});
 	}
 

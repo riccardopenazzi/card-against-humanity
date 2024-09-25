@@ -18,9 +18,13 @@ const MessageTypes = Object.freeze({
 	VOTE_SKIP_SURVEY: 'vote-skip-survey',
 });
 
+const CardVariants = Object.freeze({
+	EMPTY_CARD: 'empty_card', //empty card used in "white card mode"
+});
+
 if (typeof module !== 'undefined' && module.exports) {
-	module.exports = MessageTypes;
+	module.exports = { MessageTypes, CardVariants };
 } else {
 	window.MessageTypes = MessageTypes;
+	window.CardVariants = CardVariants;
 }
-
