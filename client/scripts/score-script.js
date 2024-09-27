@@ -35,6 +35,11 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'new-manche') {
         sessionStorage.removeItem('hasVoted');
+        const payLoad = {
+            clientId: sessionStorage.getItem('clientId'),
+            method: 'changing-page',
+        }
+        webSocket.send(JSON.stringify(payLoad));
         window.location.href = '/playing-room';
     }
 

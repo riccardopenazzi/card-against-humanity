@@ -52,6 +52,11 @@ webSocket.onmessage = receivedMessage => {
 	if (message.method === 'verify-game-code') {
 		if (message.result === 'valid') {
 			sessionStorage.setItem('gameId', message.gameCode);
+			const payLoad = {
+				clientId: sessionStorage.getItem('clientId'),
+				method: 'changing-page',
+			}
+			webSocket.send(JSON.stringify(payLoad));
 			window.location.href = "/waiting-room";
 		} else {
 			document.getElementById('show-error').innerText = '';

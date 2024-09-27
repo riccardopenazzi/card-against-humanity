@@ -57,6 +57,11 @@ webSocket.onmessage = receivedMessage => {
     if (message.method === 'create') {
         sessionStorage.setItem('gameId', message.gameId);
         sessionStorage.setItem('hostId', sessionStorage.getItem('clientId'));
+        const payLoad = {
+            clientId: sessionStorage.getItem('clientId'),
+            method: 'changing-page',
+        }
+        webSocket.send(JSON.stringify(payLoad));
         window.location.href = '/waiting-room';
     }
 

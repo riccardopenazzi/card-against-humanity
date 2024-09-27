@@ -16,6 +16,7 @@ const MessageTypes = Object.freeze({
 	CHECK_CONNECTION: 'check-connection',
 	REQ_BLACK_CARD_CHANGE: 'req-black-card-change',
 	VOTE_SKIP_SURVEY: 'vote-skip-survey',
+	CHANGING_PAGE: 'changing-page',
 });
 
 const CardVariants = Object.freeze({
