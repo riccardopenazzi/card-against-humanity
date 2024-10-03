@@ -431,11 +431,12 @@ function checkClientsConnected() {
 						if (games[gameId].players.hasOwnProperty(clientId)) {
 							if (games[gameId].hostId == clientId) {
 								//kick out all players
+								const payLoad = {
+									'method': 'server-error',
+								}
+								sendBroadcastMessage(gameId, payLoad);
 								Object.keys(games[gameId].players).forEach(playerId => {
-									const payLoad = {
-										'method': 'server-error',
-									}
-									sendBroadcastMessage(gameId, payLoad);
+									delete connectedClients[playerId];
 								});
 							} else {
 								//kick out only that player
