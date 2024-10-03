@@ -30,6 +30,14 @@ class Game {
 		delete this._players[playerId];
 	}
 
+	activatePlayer(playerId) {
+		this._players[playerId].changePlayerActive(true);
+	}
+
+	deactivatePlayer(playerId) {
+		this._players[playerId].changePlayerActive(false);
+	}
+
 	get players() {
 		return this._players;
 	}

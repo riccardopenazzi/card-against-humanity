@@ -4,6 +4,7 @@ class Player {
         this._username = username;
         this._score = 0;
         this._playerCards = [];
+        this._playerActive = true;
     }
 
     get clientId() {
@@ -21,6 +22,10 @@ class Player {
     get playerCards() {
         return this._playerCards;
     }
+
+    get playerActive() {
+        return this._playerActive;
+    }
     
     addPoint() {
         this._score++;
@@ -33,6 +38,12 @@ class Player {
     addNewCart(cart) {
         console.log(this._playerCards);
         this._playerCards.push(cart);
+    }
+
+    changePlayerActive(state) {
+        if (typeof state === "boolean") {
+            this._playerActive = state;
+        }
     }
 }
 
