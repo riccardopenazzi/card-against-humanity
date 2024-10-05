@@ -35,9 +35,8 @@ class Player {
        this._playerCards = playerCardsList;
     }
 
-    addNewCart(cart) {
-        console.log(this._playerCards);
-        this._playerCards.push(cart);
+    addNewCard(card) {
+        this._playerCards.push(card);
     }
 
     changePlayerActive(state) {

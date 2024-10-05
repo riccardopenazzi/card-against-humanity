@@ -6,6 +6,7 @@ const GameState = require("./utils/gameStates");
 const express = require("express");
 const http = require("http");
 const path = require("path");
+const { Mutex } = require('async-mutex');
 const { v4: uuidv4 } = require('uuid');
 const websocketServer = require("websocket").server;
 const { MessageTypes, CardVariants } = require('../shared/sharedCostants');
@@ -14,6 +15,7 @@ const app = express();
 const serverPort = process.env.PORT || 9090;  // Single port. use render port or 9090
 const server = http.createServer(app);  // Single server HTTP for WebSocket and Express
 
+const mutex = new Mutex();
 let checking = false;
 
 // Express page settings
@@ -77,7 +79,7 @@ wsServer.on("request", request => {
 		if (handler) {
 			handler(message, connection);
 		} else {
-			console.log('Unknow method');
+			console.log('Unknow method ', message.method);
 		}
 	});
 
@@ -98,20 +100,26 @@ function handleConnection(message, connection) {
 	sendMessage(clientId, payLoad, connection);
 }
 
-function handleConnectAgain(message, connection) {
-	let clientId = message.clientId;
-	if (checkStableConnection(clientId)) {
-		//if connection already exists
-		connectedClients[clientId].connection = connection;
-		const payLoad = {
-			'method': 'reconnected',
+async function handleConnectAgain(message, connection) {
+	const release = await mutex.acquire();
+	try {
+		let clientId = message.clientId;
+		if (checkStableConnection(clientId)) {
+			//if connection already exists
+			connectedClients[clientId].connection = connection;
+			connectedClients[clientId].retryCount = 0;
+			const payLoad = {
+				'method': 'reconnected',
+			}
+			sendMessage(clientId, payLoad, connection);
+		} else {
+			const payLoad = {
+				'method': 'invalid-clientId',
+			}
+			connection.send(JSON.stringify(payLoad));
 		}
-		sendMessage(clientId, payLoad, connection);
-	} else {
-		const payLoad = {
-			'method': 'invalid-clientId',
-		}
-		connection.send(JSON.stringify(payLoad));
+	} finally {
+		release();
 	}
 }
 
@@ -392,14 +400,19 @@ function handleVoteSkipSurvey(message, connection) {
 		games[gameId].surveyNegativeVote();
 	}
 	if (games[gameId].checkAllPlayersReady()) {
+		let result = false;
 		if (games[gameId].surveyResult >= 0) {
 			games[gameId].skipBlackCard();
+			games[gameId].redistributeWhiteCardsPlayed();
+			games[gameId].resetPlayedCards();
+			result = true;
 		}
 		games[gameId].resetSurveyCounter();
 		games[gameId].resetReadyPlayers();
 		const payLoad = {
 			'method': 'vote-skip-survey',
 			'blackCard': games[gameId].currentManche.blackCard,
+			'result': result,
 		}
 		sendBroadcastMessage(gameId, payLoad, connection);
 	}
@@ -408,55 +421,60 @@ function handleVoteSkipSurvey(message, connection) {
 
 const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
-function checkClientsConnected() {
-	if (!checking) {
-		debugMode && console.log('controllo checking è false');
-		checking = true;
-		Object.keys(connectedClients).forEach(clientId => {
-			if (connectedClients[clientId].alive) {
-				connectedClients[clientId].alive = false;
-				connectedClients[clientId].retryCount = 0;
-				const payLoad = {
-					'method': 'check-connection',
-				}
-				sendMessage(clientId, payLoad);
-			} else if (connectedClients[clientId].alive === 'started') {
-				connectedClients[clientId].alive = true;
-			} else {
-				console.log('Retrying connection check for', clientId);
-        		connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
-				if (connectedClients[clientId].retryCount >= 3) {
-					console.log(clientId, ' disconnected after retries');
-					Object.keys(games).forEach(gameId => {
-						if (games[gameId].players.hasOwnProperty(clientId)) {
-							if (games[gameId].hostId == clientId) {
-								//kick out all players
-								const payLoad = {
-									'method': 'server-error',
-								}
-								sendBroadcastMessage(gameId, payLoad);
-								Object.keys(games[gameId].players).forEach(playerId => {
-									delete connectedClients[playerId];
-								});
-							} else {
-								//kick out only that player
-								games[gameId].removePlayer(clientId);
-								handleDisconnection(gameId, clientId);
-							}
-						}
-					});
-					delete connectedClients[clientId];
-				} else {
+async function checkClientsConnected() {
+	const release = await mutex.acquire();
+	try {
+		if (!checking) {
+			debugMode && console.log('controllo checking è false');
+			checking = true;
+			Object.keys(connectedClients).forEach(clientId => {
+				console.log(clientId);
+				if (connectedClients[clientId].alive) {
+					connectedClients[clientId].alive = false;
+					connectedClients[clientId].retryCount = 0;
 					const payLoad = {
 						'method': 'check-connection',
-					};
+					}
 					sendMessage(clientId, payLoad);
+				} else if (connectedClients[clientId].alive === 'started') {
+					connectedClients[clientId].alive = true;
+				} else {
+					console.log('Retrying connection check for', clientId);
+					connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
+					if (connectedClients[clientId].retryCount > 3) {
+						console.log(clientId, ' disconnected after retries');
+						for (const [gameId, game] of Object.entries(games)) {
+							if (game.players.hasOwnProperty(clientId)) {
+								/* if (game.hostId === clientId) {
+									// kick out all players
+									const payLoad = {
+										'method': 'server-error',
+									};
+									sendBroadcastMessage(gameId, payLoad);
+									Object.keys(game.players).forEach(playerId => {
+										delete connectedClients[playerId];
+									});
+								} else {
+									// kick out only that player
+							} */
+								game.removePlayer(clientId);
+								handleDisconnection(gameId, clientId);
+								break;
+							}
+						}					
+						delete connectedClients[clientId];
+					} else {
+						const payLoad = {
+							'method': 'check-connection',
+						};
+						sendMessage(clientId, payLoad);
+					}
 				}
-			}
-		});
-		checking = false;
-	} else {
-		debugMode && console.log('Controllerei ma checking è true')
+			});
+			checking = false;
+		}
+	} finally {
+		release();
 	}
 }
 

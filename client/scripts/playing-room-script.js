@@ -152,6 +152,7 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'vote-skip-survey') {
+        message.result && sessionStorage.removeItem('hasPlayedCard');
         skipCardFrame.style.display = 'none';
         const payLoad = {
             'method': 'start-manche',
