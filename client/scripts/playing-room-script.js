@@ -78,7 +78,13 @@ webSocket.onmessage = receivedMessage => {
                 paintMessage('Aspetta che i giocatori scelgano la propria carta');
             }
         } else {
-            requestCardList();
+            /* const hasPlayedCard = ; */
+            if (sessionStorage.getItem('hasPlayedCard')) {
+                paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+                btnSkipCard.style.display = 'none';
+            } else {
+                requestCardList();
+            }
         }
     }
 
@@ -133,6 +139,7 @@ webSocket.onmessage = receivedMessage => {
             method: 'changing-page',
         }
         webSocket.send(JSON.stringify(payLoad));
+        sessionStorage.removeItem('hasPlayedCard');
         window.location.href = '/score';
     }
 
@@ -307,6 +314,7 @@ function createConfirmBtn(card, emptyCard = false) {
                 'cardText': card,
                 'createdSentence': document.getElementById('empty-card-input').value,
             }
+            sessionStorage.setItem('hasPlayedCard', true);
             webSocket.send(JSON.stringify(payLoad));
         });
     } else {
@@ -317,6 +325,7 @@ function createConfirmBtn(card, emptyCard = false) {
                 'gameId': sessionStorage.getItem('gameId'),
                 'cardText': card,
             }
+            sessionStorage.setItem('hasPlayedCard', true);
             webSocket.send(JSON.stringify(payLoad));
         });
     }
