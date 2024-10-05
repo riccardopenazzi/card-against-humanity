@@ -10,6 +10,7 @@ let btnSkipCard = document.getElementById('btn-skip-card');
 let skipCardFrame = document.getElementById('skip-card-frame');
 let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
+let disconnectedPopup = document.getElementById('disconnection-popup');
 
 let playedCards = [];
 
@@ -176,6 +177,14 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'server-error') {
         window.location.href = '/';
+    }
+
+    if (message.method === 'player-disconnected') {
+        showDisconnectedPopup();
+    }
+
+    if (message.method === 'player-disconnection-managed') {
+        hideDisconnectedPopup();
     }
 }
 
@@ -383,4 +392,12 @@ function createScrollFeature(target) {
 function emptyCardAction() {
     let text = document.getElementById('empty-card-input');
 
+}
+
+function showDisconnectedPopup() {
+    disconnectedPopup.classList.remove('hidden');
+}
+
+function hideDisconnectedPopup() {
+    disconnectedPopup.classList.add('hidden');
 }

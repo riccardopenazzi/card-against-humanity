@@ -17,6 +17,8 @@ const MessageTypes = Object.freeze({
 	REQ_BLACK_CARD_CHANGE: 'req-black-card-change',
 	VOTE_SKIP_SURVEY: 'vote-skip-survey',
 	CHANGING_PAGE: 'changing-page',
+	PLAYER_DISCONNECTED: 'player-disconnected',
+	PLAYER_DISCONNECTION_MANAGED: 'player-disconnection-managed',
 });
 
 const CardVariants = Object.freeze({

@@ -441,27 +441,17 @@ async function checkClientsConnected() {
 				} else {
 					console.log('Retrying connection check for', clientId);
 					connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
+					if (connectedClients[clientId].retryCount == 1) {
+						const payLoad = {
+							'method': MessageTypes.PLAYER_DISCONNECTED,
+						}
+						sendBroadcastMessage(getGameIdFromPlayer(clientId), payLoad);
+					}
 					if (connectedClients[clientId].retryCount > 3) {
 						console.log(clientId, ' disconnected after retries');
-						for (const [gameId, game] of Object.entries(games)) {
-							if (game.players.hasOwnProperty(clientId)) {
-								/* if (game.hostId === clientId) {
-									// kick out all players
-									const payLoad = {
-										'method': 'server-error',
-									};
-									sendBroadcastMessage(gameId, payLoad);
-									Object.keys(game.players).forEach(playerId => {
-										delete connectedClients[playerId];
-									});
-								} else {
-									// kick out only that player
-							} */
-								game.removePlayer(clientId);
-								handleDisconnection(gameId, clientId);
-								break;
-							}
-						}					
+						const gameId = getGameIdFromPlayer(clientId);
+						games[gameId].removePlayer(clientId);
+						handleDisconnection(gameId, clientId);				
 						delete connectedClients[clientId];
 					} else {
 						const payLoad = {
@@ -475,6 +465,14 @@ async function checkClientsConnected() {
 		}
 	} finally {
 		release();
+	}
+}
+
+function getGameIdFromPlayer(playerId) {
+	for (const [gameId, game] of Object.entries(games)) {
+		if (game.players.hasOwnProperty(playerId)) {
+			return gameId;
+		}
 	}
 }
 
@@ -521,6 +519,11 @@ function handleDisconnection(gameId, clientId) {
 			sendBroadcastMessage(gameId, payLoad);
 		}
 	}
+
+	const payLoad = {
+		'method': MessageTypes.PLAYER_DISCONNECTION_MANAGED,
+	}
+	sendBroadcastMessage(gameId, payLoad);
 	debugMode && console.log('Fine gestione disconnessione');
 }
 
