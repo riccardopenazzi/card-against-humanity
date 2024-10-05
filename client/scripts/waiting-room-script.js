@@ -114,6 +114,19 @@ webSocket.onmessage = receivedMessage => {
     if (message.method === 'server-error') {
         window.location.href = '/';
     }
+
+    if (message.method === 'connection-trouble') {
+        showPopup('single-disconnection-popup');
+    }
+
+    if (message.method === 'player-disconnected') {
+        hidePopup('single-disconnection-popup')
+        showPopup('disconnection-popup');
+    }
+
+    if (message.method === 'player-disconnection-managed') {
+        hidePopup('disconnection-popup');
+    }
 }
 
 function createDivGameCode(target) {    

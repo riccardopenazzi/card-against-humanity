@@ -174,12 +174,17 @@ webSocket.onmessage = receivedMessage => {
         window.location.href = '/';
     }
 
+    if (message.method === 'connection-trouble') {
+        showPopup('single-disconnection-popup');
+    }
+
     if (message.method === 'player-disconnected') {
-        showDisconnectedPopup();
+        hidePopup('single-disconnection-popup')
+        showPopup('disconnection-popup');
     }
 
     if (message.method === 'player-disconnection-managed') {
-        hideDisconnectedPopup();
+        hidePopup('disconnection-popup');
     }
 
     if (message.method === 'skip-manche') {
@@ -394,10 +399,10 @@ function emptyCardAction() {
 
 }
 
-function showDisconnectedPopup() {
-    disconnectedPopup.classList.remove('hidden');
+function showPopup(popupId) {
+    document.getElementById(popupId).classList.remove('hidden');
 }
 
-function hideDisconnectedPopup() {
-    disconnectedPopup.classList.add('hidden');
+function hidePopup(popupId) {
+    document.getElementById(popupId).classList.add('hidden');
 }
