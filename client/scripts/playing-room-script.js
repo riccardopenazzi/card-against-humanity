@@ -187,6 +187,10 @@ webSocket.onmessage = receivedMessage => {
         hidePopup('disconnection-popup');
     }
 
+    if (message.method === 'connection-trouble-managed') {
+        hidePopup('single-disconnection-popup');
+    }
+
     if (message.method === 'skip-manche') {
         sessionStorage.removeItem('hasPlayedCard');
         location.href = '/score';
