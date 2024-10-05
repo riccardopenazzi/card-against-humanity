@@ -82,8 +82,18 @@ class Game {
 		this._manches.push(new Manche(this._blackCards.pop(), this._hostId));
 		Object.keys(this._players).forEach(player => {
 			this._players[player].initPlayerCards(this._whiteCards.splice(-this._startCardNumber));
-			this._players[player].addNewCard(CardVariants.EMPTY_CARD);
+			if (this._whiteCardMode) {
+				this._players[player].addNewCard(CardVariants.EMPTY_CARD);
+			}
 		});
+	}
+
+	//used to compute real number of cards excluded special cards
+	getRealPlayerCardsNumber(playerId) {
+		let playerCards = [...this._players[playerId].playerCards]; //create a copy of the original list
+		const emptyCardIndex = playerCards.indexOf(CardVariants.EMPTY_CARD);
+		emptyCardIndex != -1 && playerCards.splice(emptyCardIndex, 1);
+		return playerCards.length;
 	}
 
 	redistributeWhiteCardsPlayed() {
@@ -138,9 +148,12 @@ class Game {
 
 	newManche() {
 		Object.keys(this._players).forEach(player => {
-			console.log(player + ' ' + this.currentManche.master);
 			if (player !== this.currentManche.master) {
-				this._players[player].addNewCard(this._whiteCards.pop());
+				let cardsToAdd = this._startCardNumber - this.getRealPlayerCardsNumber(player);
+				console.log('start: ' + this._startCardNumber + ' real: ' + this.getRealPlayerCardsNumber(player) + ' add ' + cardsToAdd)
+				while (cardsToAdd-- > 0) {
+					this._players[player].addNewCard(this._whiteCards.pop());
+				}
 			}
 		});
 		this._manches.push(new Manche(this._blackCards.pop(), this.currentManche.winner));
@@ -167,6 +180,11 @@ class Game {
 
 	updateGameState(gameState) {
 		this._gameState = gameState;
+	}
+
+	skipManche() {
+		this.redistributeWhiteCardsPlayed();
+		this.currentManche.setWinner(Object.keys(this._players)[0]);
 	}
 
 	#initBlackDeck() {

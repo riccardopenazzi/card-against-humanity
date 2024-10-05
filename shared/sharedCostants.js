@@ -19,6 +19,7 @@ const MessageTypes = Object.freeze({
 	CHANGING_PAGE: 'changing-page',
 	PLAYER_DISCONNECTED: 'player-disconnected',
 	PLAYER_DISCONNECTION_MANAGED: 'player-disconnection-managed',
+	SKIP_MANCHE: 'skip-manche',
 });
 
 const CardVariants = Object.freeze({

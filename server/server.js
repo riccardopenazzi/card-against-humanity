@@ -450,8 +450,10 @@ async function checkClientsConnected() {
 					if (connectedClients[clientId].retryCount > 3) {
 						console.log(clientId, ' disconnected after retries');
 						const gameId = getGameIdFromPlayer(clientId);
-						games[gameId].removePlayer(clientId);
-						handleDisconnection(gameId, clientId);				
+						if (games[gameId] && games[gameId].players) {
+							games[gameId].removePlayer(clientId);
+							handleDisconnection(gameId, clientId);				
+						}
 						delete connectedClients[clientId];
 					} else {
 						const payLoad = {
@@ -479,13 +481,22 @@ function getGameIdFromPlayer(playerId) {
 function handleDisconnection(gameId, clientId) {
 	debugMode && console.log('Gestisco disconnessione');
 	if (games[gameId].gameState === GameState.CHOOSING_WHITE_CARDS) {
-		if (games[gameId].checkMancheComplete()) {
-			delete games[gameId].currentManche.playedWhiteCards[clientId];
+		if (games[gameId].currentManche.master === clientId) {
+			games[gameId].skipManche();
 			const payLoad = {
-				'method': 'show-played-cards',
-				'playedCards': games[gameId].currentManche.playedWhiteCards,
+				'method': MessageTypes.SKIP_MANCHE,
 			}
 			sendBroadcastMessage(gameId, payLoad);
+			return; //so don't send disconnection-managed 
+		} else {
+			if (games[gameId].checkMancheComplete()) {
+				delete games[gameId].currentManche.playedWhiteCards[clientId];
+				const payLoad = {
+					'method': 'show-played-cards',
+					'playedCards': games[gameId].currentManche.playedWhiteCards,
+				}
+				sendBroadcastMessage(gameId, payLoad);
+			}
 		}
 	}
 
@@ -558,9 +569,11 @@ function isGameIdExisting(gameId) {
 }
 
 function sendBroadcastMessage(gameId, payLoad, connection) {
-	Object.keys(games[gameId].players).forEach(clientId => {
-		sendMessage(clientId, payLoad, connection);
-	});
+	if (games[gameId] && games[gameId].players) {
+		Object.keys(games[gameId].players).forEach(clientId => {
+			sendMessage(clientId, payLoad, connection);
+		});
+	}
 }
 
 function sendMessage(clientId, payLoad, connection) {

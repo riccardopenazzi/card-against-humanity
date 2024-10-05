@@ -186,6 +186,11 @@ webSocket.onmessage = receivedMessage => {
     if (message.method === 'player-disconnection-managed') {
         hideDisconnectedPopup();
     }
+
+    if (message.method === 'skip-manche') {
+        sessionStorage.removeItem('hasPlayedCard');
+        location.href = '/score';
+    }
 }
 
 function requestCardList() {
