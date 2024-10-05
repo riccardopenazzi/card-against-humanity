@@ -44,6 +44,10 @@ class Manche {
     setNewMaster (masterId) {
         this._master = masterId;
     }
+
+    resetPlayedCards() {
+        this._playedWhiteCards = {};
+    }
 }
 
 module.exports = Manche;

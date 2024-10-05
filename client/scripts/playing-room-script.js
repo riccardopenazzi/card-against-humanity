@@ -10,6 +10,7 @@ let btnSkipCard = document.getElementById('btn-skip-card');
 let skipCardFrame = document.getElementById('skip-card-frame');
 let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
+let disconnectedPopup = document.getElementById('disconnection-popup');
 
 let playedCards = [];
 
@@ -78,7 +79,13 @@ webSocket.onmessage = receivedMessage => {
                 paintMessage('Aspetta che i giocatori scelgano la propria carta');
             }
         } else {
-            requestCardList();
+            /* const hasPlayedCard = ; */
+            if (sessionStorage.getItem('hasPlayedCard')) {
+                paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+                btnSkipCard.style.display = 'none';
+            } else {
+                requestCardList();
+            }
         }
     }
 
@@ -128,6 +135,12 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'watch-score') {
+        const payLoad = {
+            clientId: sessionStorage.getItem('clientId'),
+            method: 'changing-page',
+        }
+        webSocket.send(JSON.stringify(payLoad));
+        sessionStorage.removeItem('hasPlayedCard');
         window.location.href = '/score';
     }
 
@@ -140,6 +153,7 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'vote-skip-survey') {
+        message.result && sessionStorage.removeItem('hasPlayedCard');
         skipCardFrame.style.display = 'none';
         const payLoad = {
             'method': 'start-manche',
@@ -163,6 +177,19 @@ webSocket.onmessage = receivedMessage => {
 
     if (message.method === 'server-error') {
         window.location.href = '/';
+    }
+
+    if (message.method === 'player-disconnected') {
+        showDisconnectedPopup();
+    }
+
+    if (message.method === 'player-disconnection-managed') {
+        hideDisconnectedPopup();
+    }
+
+    if (message.method === 'skip-manche') {
+        sessionStorage.removeItem('hasPlayedCard');
+        location.href = '/score';
     }
 }
 
@@ -302,6 +329,7 @@ function createConfirmBtn(card, emptyCard = false) {
                 'cardText': card,
                 'createdSentence': document.getElementById('empty-card-input').value,
             }
+            sessionStorage.setItem('hasPlayedCard', true);
             webSocket.send(JSON.stringify(payLoad));
         });
     } else {
@@ -312,6 +340,7 @@ function createConfirmBtn(card, emptyCard = false) {
                 'gameId': sessionStorage.getItem('gameId'),
                 'cardText': card,
             }
+            sessionStorage.setItem('hasPlayedCard', true);
             webSocket.send(JSON.stringify(payLoad));
         });
     }
@@ -368,4 +397,12 @@ function createScrollFeature(target) {
 function emptyCardAction() {
     let text = document.getElementById('empty-card-input');
 
+}
+
+function showDisconnectedPopup() {
+    disconnectedPopup.classList.remove('hidden');
+}
+
+function hideDisconnectedPopup() {
+    disconnectedPopup.classList.add('hidden');
 }
