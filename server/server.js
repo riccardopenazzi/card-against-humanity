@@ -450,6 +450,12 @@ async function checkClientsConnected() {
 				} else {
 					console.log('Retrying connection check for', clientId);
 					connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
+					if (connectedClients[clientId].retryCount == 1) {
+						const payLoad = {
+							'method': MessageTypes.CONNECTION_TROUBLE,
+						}
+						sendMessage(clientId, payLoad);
+					}
 					if (connectedClients[clientId].retryCount == 2) {
 						const payLoad = {
 							'method': MessageTypes.PLAYER_DISCONNECTED,
