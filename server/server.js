@@ -433,12 +433,20 @@ async function checkClientsConnected() {
 				if (connectedClients[clientId].alive) {
 					connectedClients[clientId].alive = false;
 					if (connectedClients[clientId].retryCount > 0) {
-						connectedClients[clientId].retryCount = 0;
-						if (!checkSomeoneIsDisconnecting(gameId)) {
+						if (connectedClients[clientId].retryCount > 0 == 1) {
+							connectedClients[clientId].retryCount = 0;
 							const payLoad = {
-								'method': MessageTypes.PLAYER_DISCONNECTION_MANAGED,
+								'method': MessageTypes.CONNECTION_TROUBLE_MANAGED,
 							}
-							sendBroadcastMessage(gameId, payLoad);
+							sendMessage(clientId, payLoad);
+						} else {
+							connectedClients[clientId].retryCount = 0;
+							if (!checkSomeoneIsDisconnecting(gameId)) {
+								const payLoad = {
+									'method': MessageTypes.PLAYER_DISCONNECTION_MANAGED,
+								}
+								sendBroadcastMessage(gameId, payLoad);
+							}
 						}
 					}
 					const payLoad = {
