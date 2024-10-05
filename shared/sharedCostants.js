@@ -19,6 +19,7 @@ const MessageTypes = Object.freeze({
 	PLAYER_DISCONNECTED: 'player-disconnected',
 	PLAYER_DISCONNECTION_MANAGED: 'player-disconnection-managed',
 	SKIP_MANCHE: 'skip-manche',
+	CONNECTION_TROUBLE: 'connection-trouble',
 });
 
 const CardVariants = Object.freeze({
