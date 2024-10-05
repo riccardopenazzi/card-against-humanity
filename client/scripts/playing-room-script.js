@@ -135,11 +135,6 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'watch-score') {
-        const payLoad = {
-            clientId: sessionStorage.getItem('clientId'),
-            method: 'changing-page',
-        }
-        webSocket.send(JSON.stringify(payLoad));
         sessionStorage.removeItem('hasPlayedCard');
         window.location.href = '/score';
     }

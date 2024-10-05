@@ -137,11 +137,24 @@ textarea {
     color: black;
 }
 
+#popup-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+#popup-paragraph {
+    font-size: 1.2em;
+    font-style: italic;
+    margin-top: 10px;
+}
+
 .popup img {
     max-width: 100%;
     height: auto;
     margin-bottom: 10px;
 }
+
 
 .hidden {
     display: none;

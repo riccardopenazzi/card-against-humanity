@@ -96,11 +96,6 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'start-game') {
-        const payLoad = {
-            clientId: sessionStorage.getItem('clientId'),
-            method: 'changing-page',
-        }
-        webSocket.send(JSON.stringify(payLoad));
         window.location.href = '/playing-room';
     }
 

@@ -450,13 +450,13 @@ async function checkClientsConnected() {
 				} else {
 					console.log('Retrying connection check for', clientId);
 					connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
-					if (connectedClients[clientId].retryCount == 1) {
+					if (connectedClients[clientId].retryCount == 2) {
 						const payLoad = {
 							'method': MessageTypes.PLAYER_DISCONNECTED,
 						}
 						sendBroadcastMessage(getGameIdFromPlayer(clientId), payLoad);
 					}
-					if (connectedClients[clientId].retryCount > 3) {
+					if (connectedClients[clientId].retryCount > 4) {
 						console.log(clientId, ' disconnected after retries');
 						if (games[gameId] && games[gameId].players) {
 							games[gameId].removePlayer(clientId);
