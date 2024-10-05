@@ -428,10 +428,19 @@ async function checkClientsConnected() {
 			debugMode && console.log('controllo checking è false');
 			checking = true;
 			Object.keys(connectedClients).forEach(clientId => {
-				console.log(clientId);
+				debugMode && console.log(clientId);
+				const gameId = getGameIdFromPlayer(clientId);
 				if (connectedClients[clientId].alive) {
 					connectedClients[clientId].alive = false;
-					connectedClients[clientId].retryCount = 0;
+					if (connectedClients[clientId].retryCount > 0) {
+						connectedClients[clientId].retryCount = 0;
+						if (!checkSomeoneIsDisconnecting(gameId)) {
+							const payLoad = {
+								'method': MessageTypes.PLAYER_DISCONNECTION_MANAGED,
+							}
+							sendBroadcastMessage(gameId, payLoad);
+						}
+					}
 					const payLoad = {
 						'method': 'check-connection',
 					}
@@ -449,7 +458,6 @@ async function checkClientsConnected() {
 					}
 					if (connectedClients[clientId].retryCount > 3) {
 						console.log(clientId, ' disconnected after retries');
-						const gameId = getGameIdFromPlayer(clientId);
 						if (games[gameId] && games[gameId].players) {
 							games[gameId].removePlayer(clientId);
 							handleDisconnection(gameId, clientId);				
@@ -468,6 +476,15 @@ async function checkClientsConnected() {
 	} finally {
 		release();
 	}
+}
+
+function checkSomeoneIsDisconnecting(gameId) {
+	for (const clientId of Object.keys(games[gameId].players)) {
+		if (connectedClients[clientId].retryCount > 0) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function getGameIdFromPlayer(playerId) {
