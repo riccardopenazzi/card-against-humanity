@@ -10,7 +10,8 @@ let btnSkipCard = document.getElementById('btn-skip-card');
 let skipCardFrame = document.getElementById('skip-card-frame');
 let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
-let disconnectedPopup = document.getElementById('disconnection-popup');
+let showScoreIcon = document.getElementById('show-score-icon');
+let btnPopupScoreClose = document.getElementById('btn-popup-score-close');
 
 let playedCards = [];
 
@@ -51,6 +52,23 @@ document.addEventListener('DOMContentLoaded', () => {
             'clientId': sessionStorage.getItem('clientId'),
         }
         webSocket.send(JSON.stringify(payLoad));
+    });
+
+    showScoreIcon.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-score',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        webSocket.send(JSON.stringify(payLoad));
+    });
+
+    btnPopupScoreClose.addEventListener('click', () => {
+        const modalElement = document.getElementById('popup-score');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+            modal.hide(); // Nasconde la modale correttamente
+        }
     });
 });
 
@@ -156,6 +174,13 @@ webSocket.onmessage = receivedMessage => {
             'gameId': sessionStorage.getItem('gameId'),
         }
         webSocket.send(JSON.stringify(payLoad));
+    }
+
+    if (message.method === 'req-score') {
+        showScores(message.score);
+        const modalElement = document.getElementById('popup-score');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
     }
 
     if (message.method === 'check-connection') {
@@ -277,6 +302,17 @@ function paintMessage(message) {
     let p = document.createElement('p');
     p.innerHTML = message;
     frame.appendChild(p);
+}
+
+function showScores(scores) {
+    let popupScoreBody = document.getElementById('popup-score-body');
+    popupScoreBody.innerHTML = '';
+    scores.forEach(score => {
+        const scoreElement = document.createElement('div');
+        scoreElement.classList.add('d-flex', 'justify-content-between', 'mb-2', 'text-dark');
+        scoreElement.innerHTML = `<strong>${score.username}</strong> <span>${score.score}</span>`;
+        popupScoreBody.appendChild(scoreElement);
+    });
 }
 
 function showSkipCardSurvey() {
