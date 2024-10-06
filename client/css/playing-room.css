@@ -126,3 +126,10 @@ textarea {
     padding: 10px;
 }
 
+.show-score-icon {
+    display: block; 
+    margin-left: auto; 
+    margin-right: 10px;
+    cursor: pointer;
+}
+
