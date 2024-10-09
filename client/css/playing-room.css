@@ -5,6 +5,7 @@
     padding: 10px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
+    margin-left: 15px;
 }
 
 .scrollable-cards::-webkit-scrollbar {
@@ -18,17 +19,26 @@
     justify-content: space-between; 
     flex-shrink: 0;
     width: 240px;
-    height: 300px;
-    background-color: #f8f9fa;
-    border: 2px solid #343a40;
+    height: 350px;
     border-radius: 10px;
     padding: 15px;
-    text-align: center;
-    font-size: 16px;
-    font-style: italic;
+    text-align: left;
     transition: transform 0.2s;
     scroll-snap-align: start;
     font-size: 18px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    margin-top: 35px;
+}
+
+.black-card {
+    background-color: black;
+    color: white;
+}
+
+.white-card {
+    background-color: #f8f9fa;
+    border: 2px solid #343a40;
 }
 
 .card.empty-card {
@@ -37,7 +47,8 @@
 
 textarea {
     border-radius: 3px;
-    font-style: italic;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 700;
 }
 
 .single-card {
@@ -57,10 +68,6 @@ textarea {
 
 .btn-confirm-card,
 .btn-winning-card {
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
     padding: 7px;
     font-size: 14px;
     cursor: pointer;
@@ -68,8 +75,20 @@ textarea {
     min-width: 100px;
 }
 
+.bottom-div {
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+}
+
 .btn-confirm-card {
     background-color: #a3bce6;
+    margin-bottom: 10px;
 }
 
 .btn-winning-card {
@@ -133,3 +152,38 @@ textarea {
     cursor: pointer;
 }
 
+.card-sign {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    margin-left: 10px;
+}
+
+.card-sign-icon {
+    font-size: 16px;
+    align-items: center;
+}
+
+.card-sign-icon svg {
+    vertical-align: middle;
+}
+
+.card-sign-text {
+    margin-left: 2px;
+    font-size: 12px;
+}
+
+.icon-confirm {
+    width: 60px;
+}
+
+.selected-card {
+    transform: translateY(-35px);
+    transition: transform 0.2s ease;
+}
+
+.underline-text {
+    text-decoration: underline;
+}

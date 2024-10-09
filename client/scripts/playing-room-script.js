@@ -14,6 +14,9 @@ let showScoreIcon = document.getElementById('show-score-icon');
 let btnPopupScoreClose = document.getElementById('btn-popup-score-close');
 
 let playedCards = [];
+let selectedCard = '';
+let blackCard = '';
+let selectedWinner = '';
 
 webSocket.onopen = () => {
     const clientId = sessionStorage.getItem('clientId');
@@ -88,6 +91,7 @@ webSocket.onmessage = receivedMessage => {
         document.getElementById('title').innerHTML = '';
         document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
         document.getElementById('black-card').innerText = message.blackCard;
+        blackCard = message.blackCard;
         const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
         sessionStorage.setItem('master', isMaster);
         if (isMaster) {
@@ -237,28 +241,43 @@ function fillCardList(cardList) {
     cardListDiv.classList.add('scrollable-cards');
     createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
-    cardList.sort((a, b) => a === CardVariants.EMPTY_CARD ? 1 : -1); //always show empty card as first if present
-    cardList.reverse().forEach((card, index) => {
-        let cardDiv = document.createElement('div');
-        cardDiv.classList.add('card');
-        let internalCardElement;
-        let confirmBtn;
-        if (card === CardVariants.EMPTY_CARD) {
-            internalCardElement = document.createElement('textarea');
-            internalCardElement.setAttribute('placeholder', 'Completa la carta');
-            internalCardElement.setAttribute('id', 'empty-card-input');
-            internalCardElement.rows = 8;
-            cardDiv.classList.add('empty-card');
-            confirmBtn =  createConfirmBtn(card, true);
-        } else {
-            internalCardElement = document.createElement('div');
-            internalCardElement.innerText = card;
-            confirmBtn = createConfirmBtn(card);
-        }
-        cardDiv.appendChild(internalCardElement);
-        cardDiv.appendChild(confirmBtn);
-        cardListDiv.appendChild(cardDiv);
+    cardList.sort((a, b) => (a === CardVariants.EMPTY_CARD ? 1 : -1)).reverse().forEach(card => {
+        cardListDiv.appendChild(createCard(card));
     });
+    const btnConfirm = createConfirmBtn();
+    frame.appendChild(btnConfirm);
+}
+
+function createCard(card) {
+    let cardDiv = document.createElement('div');
+    cardDiv.classList.add('card', 'white-card');
+    let internalCardElement;
+    if (card === CardVariants.EMPTY_CARD) {
+        internalCardElement = document.createElement('textarea');
+        internalCardElement.setAttribute('placeholder', 'Completa la carta');
+        internalCardElement.setAttribute('id', 'empty-card-input');
+        internalCardElement.rows = 8;
+        cardDiv.classList.add('empty-card');
+    } else {
+        internalCardElement = document.createElement('div');
+        internalCardElement.innerText = card;
+    }
+    cardDiv.appendChild(internalCardElement);
+    cardDiv.addEventListener('click', () => handleCardClick(card, cardDiv, internalCardElement));
+    const bottomDiv = document.createElement('div');
+    bottomDiv.classList.add('bottom-div');
+    bottomDiv.appendChild(createCardSign());
+    cardDiv.appendChild(bottomDiv);
+    return cardDiv;
+}
+
+function handleCardClick(card, cardDiv, internalCardElement) {
+    const selectedCardElement = document.getElementsByClassName('selected-card')[0];
+    if (selectedCardElement) {
+        selectedCardElement.classList.remove('selected-card');
+    }
+    selectedCard = card === CardVariants.EMPTY_CARD ? internalCardElement.value : card;
+    cardDiv.classList.add('selected-card');
 }
 
 function fillMasterCardList(playedCards) {
@@ -270,31 +289,65 @@ function fillMasterCardList(playedCards) {
     frame.appendChild(cardListDiv);
     Object.entries(playedCards).forEach(entry => {
         const [clientId, cardText] = entry;
-        let cardDiv = document.createElement('div');
-        cardDiv.classList.add('card');
-        let textDiv = document.createElement('div');
-        textDiv.innerText = cardText;
-        let chooseWinnerBtn = createChooseWinnermBtn(clientId);
-        cardDiv.appendChild(textDiv);
-        cardDiv.appendChild(chooseWinnerBtn);
-        cardListDiv.appendChild(cardDiv);
+        let card = createBlackCard(cardText, false, clientId);
+        cardListDiv.appendChild(card);
     });
+    let chooseWinnerBtn = createChooseWinnermBtn();
+    frame.appendChild(chooseWinnerBtn);
 }
 
 function showSingleCard(card) {
+    document.getElementById('standard-frame').innerHTML != '' && (document.getElementById('standard-frame').innerHTML = '');
     let frame = document.getElementById('single-card-frame');
     frame.innerHTML = '';
-    let cardDiv = document.createElement('div');
-    cardDiv.classList.add('card', 'single-card');
-    let textDiv = document.createElement('div');
-    textDiv.innerText = card;
-    cardDiv.appendChild(textDiv);
+    let cardDiv = createBlackCard(card, true);
     frame.appendChild(cardDiv);
-
     setTimeout(() => {
         cardDiv.classList.add('visible');
     }, 300);
 }
+
+function createBlackCard(card, singleCard = false, clientId) {
+    let cardTextTranformed = modifyCardText(card);
+    console.log(cardTextTranformed);
+    let cardText = blackCard.replace(/_/g, `<span class="underline-text">${cardTextTranformed}</span>`);
+    cardText = cardText.charAt(0).toUpperCase() + cardText.slice(1);
+    let cardDiv = document.createElement('div');
+    cardDiv.classList.add('card', 'black-card');
+    singleCard && cardDiv.classList.add('single-card');
+    let textDiv = document.createElement('div');
+    textDiv.innerHTML = cardText;
+    const bottomDiv = document.createElement('div');
+    bottomDiv.classList.add('bottom-div');
+    bottomDiv.appendChild(createCardSign());
+    cardDiv.appendChild(textDiv);
+    cardDiv.appendChild(bottomDiv);
+    console.log('black')
+    console.log(clientId);
+    !singleCard && cardDiv.addEventListener('click', () => handleBlackCardClick(clientId, cardDiv));
+    return cardDiv;
+}
+
+function handleBlackCardClick(clientId, cardDiv) {
+    console.log(clientId);
+    const selectedCardElement = document.getElementsByClassName('selected-card')[0];
+    if (selectedCardElement) {
+        selectedCardElement.classList.remove('selected-card');
+    }
+    selectedWinner = clientId;
+    cardDiv.classList.add('selected-card');
+}
+
+function modifyCardText(text) {
+    let newText = text;
+    if (newText.endsWith('.')) {
+        newText = newText.slice(0, -1);
+    }
+    newText = newText.charAt(0).toLowerCase() + newText.slice(1);
+    console.log(text + ' ' + newText);
+    return newText;
+}
+
 
 function paintMessage(message) {
     let frame = document.getElementById('frame');
@@ -357,49 +410,51 @@ function showSkipCardSurvey() {
 
 function createConfirmBtn(card, emptyCard = false) {
     let btn = document.createElement('button');
-    btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
+    btn.classList.add('btn-confirm-card');
     btn.innerText = 'Conferma';
-    if (emptyCard) {
-        btn.addEventListener('click', e => {
-            console.log('EMPTY CARD');
+    btn.addEventListener('click', e => {
+        if (selectedCard) {
             const payLoad = {
                 'method': 'play-card',
                 'clientId': sessionStorage.getItem('clientId'),
                 'gameId': sessionStorage.getItem('gameId'),
-                'cardText': card,
-                'createdSentence': document.getElementById('empty-card-input').value,
-            }
+                'cardText': selectedCard,
+            };
             sessionStorage.setItem('hasPlayedCard', true);
             webSocket.send(JSON.stringify(payLoad));
-        });
-    } else {
-        btn.addEventListener('click', e => {
-            const payLoad = {
-                'method': 'play-card',
-                'clientId': sessionStorage.getItem('clientId'),
-                'gameId': sessionStorage.getItem('gameId'),
-                'cardText': card,
-            }
-            sessionStorage.setItem('hasPlayedCard', true);
-            webSocket.send(JSON.stringify(payLoad));
-        });
-    }
+        }
+    });
     return btn;
 }
 
-function createChooseWinnermBtn(clientId) {
+function createChooseWinnermBtn() {
     let btn = document.createElement('button');
     btn.classList.add('btn-winning-card', 'mochiy-pop-p-one-regular');
     btn.innerText = 'Scegli';
     btn.addEventListener('click', e => {
-        const payLoad = {
-            'method': 'choosing-winner',
-            'gameId': sessionStorage.getItem('gameId'),
-            'winner': clientId,
+        if (selectedWinner) {
+            const payLoad = {
+                'method': 'choosing-winner',
+                'gameId': sessionStorage.getItem('gameId'),
+                'winner': selectedWinner,
+            }
+            webSocket.send(JSON.stringify(payLoad));
         }
-        webSocket.send(JSON.stringify(payLoad));
     });
-    return btn
+    return btn;
+}
+
+function createCardSign() {
+    const div = document.createElement('div');
+    div.classList.add('card-sign');
+    const icon = document.createElement('i');
+    icon.classList.add('bi', 'bi-code-slash', 'card-sign-icon');
+    div.appendChild(icon);
+    const sign = document.createElement('div');
+    sign.classList.add('card-sign-text');
+    sign.innerText = 'Dev against humanity';
+    div.appendChild(sign);
+    return div;
 }
 
 function createScrollFeature(target) {
