@@ -14,6 +14,7 @@ let showScoreIcon = document.getElementById('show-score-icon');
 let btnPopupScoreClose = document.getElementById('btn-popup-score-close');
 
 let playedCards = [];
+let selectedCard = '';
 
 webSocket.onopen = () => {
     const clientId = sessionStorage.getItem('clientId');
@@ -242,27 +243,36 @@ function fillCardList(cardList) {
         let cardDiv = document.createElement('div');
         cardDiv.classList.add('card');
         let internalCardElement;
-        let confirmBtn;
         if (card === CardVariants.EMPTY_CARD) {
             internalCardElement = document.createElement('textarea');
             internalCardElement.setAttribute('placeholder', 'Completa la carta');
             internalCardElement.setAttribute('id', 'empty-card-input');
             internalCardElement.rows = 8;
             cardDiv.classList.add('empty-card');
-            confirmBtn =  createConfirmBtn(card, true);
+            cardDiv.addEventListener('click', () => {
+                selectedCard && document.getElementsByClassName('selected-card')[0].classList.remove('selected-card');
+                selectedCard = internalCardElement.value;
+                cardDiv.classList.add('selected-card');
+            });
         } else {
             internalCardElement = document.createElement('div');
             internalCardElement.innerText = card;
-            confirmBtn = createConfirmBtn(card);
+            cardDiv.addEventListener('click', () => {
+                selectedCard && document.getElementsByClassName('selected-card')[0].classList.remove('selected-card');
+                selectedCard = card;
+                cardDiv.classList.add('selected-card');
+            });
         }
         cardDiv.appendChild(internalCardElement);
         const bottomDiv = document.createElement('div');
         bottomDiv.classList.add('bottom-div');
         bottomDiv.appendChild(createCardSign());
-        bottomDiv.appendChild(confirmBtn);
         cardDiv.appendChild(bottomDiv);
         cardListDiv.appendChild(cardDiv);
-    });
+    })
+    ;
+    const btnConfirm = createConfirmBtn();
+    frame.appendChild(btnConfirm);
 }
 
 function fillMasterCardList(playedCards) {
@@ -363,7 +373,7 @@ function createConfirmBtn(card, emptyCard = false) {
     /* let btn = document.createElement('button');
     btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
     btn.innerText = 'Conferma'; */
-    let btn = document.createElement('i');
+    /* let btn = document.createElement('i');
     btn.classList.add('bi', 'bi-check-square', 'icon-confirm');
     btn.addEventListener('click', e => {
         const payLoad = {
@@ -374,6 +384,19 @@ function createConfirmBtn(card, emptyCard = false) {
             ...emptyCard && { 'createdSentence': document.getElementById('empty-card-input').value }
         };
         
+        sessionStorage.setItem('hasPlayedCard', true);
+        webSocket.send(JSON.stringify(payLoad));
+    }); */
+    let btn = document.createElement('button');
+    btn.classList.add('btn-confirm-card');
+    btn.innerText = 'Conferma';
+    btn.addEventListener('click', e => {
+        const payLoad = {
+            'method': 'play-card',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+            'cardText': selectedCard,
+        };
         sessionStorage.setItem('hasPlayedCard', true);
         webSocket.send(JSON.stringify(payLoad));
     });

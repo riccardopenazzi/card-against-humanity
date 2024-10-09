@@ -30,7 +30,7 @@
     font-size: 18px;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-weight: 700;
-    
+    margin-top: 35px;
 }
 
 .card.empty-card {
@@ -170,4 +170,9 @@ textarea {
 
 .icon-confirm {
     width: 60px;
+}
+
+.selected-card {
+    transform: translateY(-35px);
+    transition: transform 0.2s ease;
 }
