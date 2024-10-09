@@ -256,7 +256,11 @@ function fillCardList(cardList) {
             confirmBtn = createConfirmBtn(card);
         }
         cardDiv.appendChild(internalCardElement);
-        cardDiv.appendChild(confirmBtn);
+        const bottomDiv = document.createElement('div');
+        bottomDiv.classList.add('bottom-div');
+        bottomDiv.appendChild(createCardSign());
+        bottomDiv.appendChild(confirmBtn);
+        cardDiv.appendChild(bottomDiv);
         cardListDiv.appendChild(cardDiv);
     });
 }
@@ -356,34 +360,23 @@ function showSkipCardSurvey() {
 }
 
 function createConfirmBtn(card, emptyCard = false) {
-    let btn = document.createElement('button');
+    /* let btn = document.createElement('button');
     btn.classList.add('btn-confirm-card', 'mochiy-pop-p-one-regular');
-    btn.innerText = 'Conferma';
-    if (emptyCard) {
-        btn.addEventListener('click', e => {
-            console.log('EMPTY CARD');
-            const payLoad = {
-                'method': 'play-card',
-                'clientId': sessionStorage.getItem('clientId'),
-                'gameId': sessionStorage.getItem('gameId'),
-                'cardText': card,
-                'createdSentence': document.getElementById('empty-card-input').value,
-            }
-            sessionStorage.setItem('hasPlayedCard', true);
-            webSocket.send(JSON.stringify(payLoad));
-        });
-    } else {
-        btn.addEventListener('click', e => {
-            const payLoad = {
-                'method': 'play-card',
-                'clientId': sessionStorage.getItem('clientId'),
-                'gameId': sessionStorage.getItem('gameId'),
-                'cardText': card,
-            }
-            sessionStorage.setItem('hasPlayedCard', true);
-            webSocket.send(JSON.stringify(payLoad));
-        });
-    }
+    btn.innerText = 'Conferma'; */
+    let btn = document.createElement('i');
+    btn.classList.add('bi', 'bi-check-square', 'icon-confirm');
+    btn.addEventListener('click', e => {
+        const payLoad = {
+            'method': 'play-card',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+            'cardText': card,
+            ...emptyCard && { 'createdSentence': document.getElementById('empty-card-input').value }
+        };
+        
+        sessionStorage.setItem('hasPlayedCard', true);
+        webSocket.send(JSON.stringify(payLoad));
+    });
     return btn;
 }
 
@@ -399,7 +392,20 @@ function createChooseWinnermBtn(clientId) {
         }
         webSocket.send(JSON.stringify(payLoad));
     });
-    return btn
+    return btn;
+}
+
+function createCardSign() {
+    const div = document.createElement('div');
+    div.classList.add('card-sign');
+    const icon = document.createElement('i');
+    icon.classList.add('bi', 'bi-code-slash', 'card-sign-icon');
+    div.appendChild(icon);
+    const sign = document.createElement('div');
+    sign.classList.add('card-sign-text');
+    sign.innerText = 'Dev against humanity';
+    div.appendChild(sign);
+    return div;
 }
 
 function createScrollFeature(target) {
