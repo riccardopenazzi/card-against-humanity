@@ -16,6 +16,7 @@ let btnPopupScoreClose = document.getElementById('btn-popup-score-close');
 let playedCards = [];
 let selectedCard = '';
 let blackCard = '';
+let selectedWinner = '';
 
 webSocket.onopen = () => {
     const clientId = sessionStorage.getItem('clientId');
@@ -288,38 +289,53 @@ function fillMasterCardList(playedCards) {
     frame.appendChild(cardListDiv);
     Object.entries(playedCards).forEach(entry => {
         const [clientId, cardText] = entry;
-        let cardDiv = document.createElement('div');
-        cardDiv.classList.add('card');
-        let textDiv = document.createElement('div');
-        textDiv.innerText = cardText;
-        let chooseWinnerBtn = createChooseWinnermBtn(clientId);
-        cardDiv.appendChild(textDiv);
-        cardDiv.appendChild(chooseWinnerBtn);
-        cardListDiv.appendChild(cardDiv);
+        let card = createBlackCard(cardText, false, clientId);
+        cardListDiv.appendChild(card);
     });
+    let chooseWinnerBtn = createChooseWinnermBtn();
+    frame.appendChild(chooseWinnerBtn);
 }
 
 function showSingleCard(card) {
     document.getElementById('standard-frame').innerHTML != '' && (document.getElementById('standard-frame').innerHTML = '');
     let frame = document.getElementById('single-card-frame');
-    let cardTextTranformed = modifyCardText(card);
-    cardTextTranformed = cardTextTranformed.charAt(0).toUpperCase() + cardTextTranformed.slice(1);
-    console.log(cardTextTranformed);
-    const singleCardText = blackCard.replace(/_/g, `<span class="underline-text">${cardTextTranformed}</span>`);
     frame.innerHTML = '';
+    let cardDiv = createBlackCard(card, true);
+    frame.appendChild(cardDiv);
+    setTimeout(() => {
+        cardDiv.classList.add('visible');
+    }, 300);
+}
+
+function createBlackCard(card, singleCard = false, clientId) {
+    let cardTextTranformed = modifyCardText(card);
+    console.log(cardTextTranformed);
+    let cardText = blackCard.replace(/_/g, `<span class="underline-text">${cardTextTranformed}</span>`);
+    cardText = cardText.charAt(0).toUpperCase() + cardText.slice(1);
     let cardDiv = document.createElement('div');
-    cardDiv.classList.add('card', 'single-card', 'black-card');
+    cardDiv.classList.add('card', 'black-card');
+    singleCard && cardDiv.classList.add('single-card');
     let textDiv = document.createElement('div');
-    textDiv.innerHTML = singleCardText;
+    textDiv.innerHTML = cardText;
     const bottomDiv = document.createElement('div');
     bottomDiv.classList.add('bottom-div');
     bottomDiv.appendChild(createCardSign());
     cardDiv.appendChild(textDiv);
     cardDiv.appendChild(bottomDiv);
-    frame.appendChild(cardDiv);
-    setTimeout(() => {
-        cardDiv.classList.add('visible');
-    }, 300);
+    console.log('black')
+    console.log(clientId);
+    !singleCard && cardDiv.addEventListener('click', () => handleBlackCardClick(clientId, cardDiv));
+    return cardDiv;
+}
+
+function handleBlackCardClick(clientId, cardDiv) {
+    console.log(clientId);
+    const selectedCardElement = document.getElementsByClassName('selected-card')[0];
+    if (selectedCardElement) {
+        selectedCardElement.classList.remove('selected-card');
+    }
+    selectedWinner = clientId;
+    cardDiv.classList.add('selected-card');
 }
 
 function modifyCardText(text) {
@@ -327,9 +343,11 @@ function modifyCardText(text) {
     if (newText.endsWith('.')) {
         newText = newText.slice(0, -1);
     }
+    newText = newText.charAt(0).toLowerCase() + newText.slice(1);
     console.log(text + ' ' + newText);
-    return newText.toLowerCase();
+    return newText;
 }
+
 
 function paintMessage(message) {
     let frame = document.getElementById('frame');
@@ -409,17 +427,19 @@ function createConfirmBtn(card, emptyCard = false) {
     return btn;
 }
 
-function createChooseWinnermBtn(clientId) {
+function createChooseWinnermBtn() {
     let btn = document.createElement('button');
     btn.classList.add('btn-winning-card', 'mochiy-pop-p-one-regular');
     btn.innerText = 'Scegli';
     btn.addEventListener('click', e => {
-        const payLoad = {
-            'method': 'choosing-winner',
-            'gameId': sessionStorage.getItem('gameId'),
-            'winner': clientId,
+        if (selectedWinner) {
+            const payLoad = {
+                'method': 'choosing-winner',
+                'gameId': sessionStorage.getItem('gameId'),
+                'winner': selectedWinner,
+            }
+            webSocket.send(JSON.stringify(payLoad));
         }
-        webSocket.send(JSON.stringify(payLoad));
     });
     return btn;
 }
