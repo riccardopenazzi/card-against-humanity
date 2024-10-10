@@ -269,14 +269,14 @@ function handlePlayCard(message, connection) {
 	}
 	let gameId = message.gameId;
 	let cardText = message.cardText;
-	let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
-	let choosenCard = games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1)[0];
-	if (choosenCard === CardVariants.EMPTY_CARD) {
-		console.log( message.createdSentence);
-		games[gameId].currentManche.addCard(clientId, message.createdSentence);
+	if (message.isEmptyCard) {
+		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == CardVariants.EMPTY_CARD);
+		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	} else {
-		games[gameId].currentManche.addCard(clientId, choosenCard);
+		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
+		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	}
+	games[gameId].currentManche.addCard(clientId, cardText);
 	const payLoad = {
 		'method': 'play-card',
 	}

@@ -276,7 +276,7 @@ function handleCardClick(card, cardDiv, internalCardElement) {
     if (selectedCardElement) {
         selectedCardElement.classList.remove('selected-card');
     }
-    selectedCard = card === CardVariants.EMPTY_CARD ? internalCardElement.value : card;
+    selectedCard = card;
     cardDiv.classList.add('selected-card');
 }
 
@@ -339,6 +339,7 @@ function handleBlackCardClick(clientId, cardDiv) {
 }
 
 function modifyCardText(text) {
+    console.log(text)
     let newText = text;
     if (newText.endsWith('.')) {
         newText = newText.slice(0, -1);
@@ -418,7 +419,8 @@ function createConfirmBtn(card, emptyCard = false) {
                 'method': 'play-card',
                 'clientId': sessionStorage.getItem('clientId'),
                 'gameId': sessionStorage.getItem('gameId'),
-                'cardText': selectedCard,
+                'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
             };
             sessionStorage.setItem('hasPlayedCard', true);
             webSocket.send(JSON.stringify(payLoad));
