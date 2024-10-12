@@ -101,7 +101,6 @@ webSocket.onmessage = receivedMessage => {
                 paintMessage('Aspetta che i giocatori scelgano la propria carta');
             }
         } else {
-            /* const hasPlayedCard = ; */
             if (sessionStorage.getItem('hasPlayedCard')) {
                 paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
                 btnSkipCard.style.display = 'none';
@@ -162,7 +161,7 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'win') {
-        paintMessage(message.winner + ' ha vinto');
+        window.location.href = '/final-ranking';
     }
 
     if (message.method === 'req-black-card-change') {
