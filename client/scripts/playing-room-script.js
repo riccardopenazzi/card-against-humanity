@@ -240,12 +240,22 @@ function fillCardList(cardList) {
     cardListDiv.classList.add('scrollable-cards');
     createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
-    cardList.sort((a, b) => (a === CardVariants.EMPTY_CARD ? 1 : -1)).reverse().forEach(card => {
+
+    const emptyCard = cardList.filter(card => card === CardVariants.EMPTY_CARD);
+    const otherCards = cardList.filter(card => card !== CardVariants.EMPTY_CARD);
+
+    otherCards.reverse().forEach(card => {
         cardListDiv.appendChild(createCard(card));
     });
+
+    if (emptyCard.length > 0) {
+        cardListDiv.insertBefore(createCard(emptyCard[0]), cardListDiv.firstChild);
+    }
+
     const btnConfirm = createConfirmBtn();
     frame.appendChild(btnConfirm);
 }
+
 
 function createCard(card) {
     let cardDiv = document.createElement('div');
