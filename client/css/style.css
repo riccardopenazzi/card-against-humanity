@@ -3,6 +3,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
 
+@import url('home-page.css');
+
 body {
 	background-color: #2A2A2A;
 	color: white;
