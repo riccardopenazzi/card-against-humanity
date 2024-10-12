@@ -320,7 +320,9 @@ function createBlackCard(card, singleCard = false, clientId) {
     let cardTextTranformed = modifyCardText(card);
     console.log(cardTextTranformed);
     let cardText = blackCard.replace(/_/g, `<span class="underline-text">${cardTextTranformed}</span>`);
+    console.log(cardText);
     cardText = cardText.charAt(0).toUpperCase() + cardText.slice(1);
+    console.log(cardText);
     let cardDiv = document.createElement('div');
     cardDiv.classList.add('card', 'black-card');
     singleCard && cardDiv.classList.add('single-card');
@@ -350,10 +352,22 @@ function handleBlackCardClick(clientId, cardDiv) {
 function modifyCardText(text) {
     console.log(text)
     let newText = text;
+    let underscoreIndex = blackCard.indexOf('_');
+    /*If present remove last . */
     if (newText.endsWith('.')) {
         newText = newText.slice(0, -1);
     }
-    newText = newText.charAt(0).toLowerCase() + newText.slice(1);
+    /*First char upper case if black card start with _ or if char before _ is ? or ! */
+    if (blackCard.startsWith(' _') || 
+            blackCard.startsWith('_') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 2] === '?') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 1] === '?') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 2] === '!') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 1] === '!') ) {
+        (newText = newText.charAt(0).toUpperCase() + newText.slice(1));
+    } else {
+        newText = newText.charAt(0).toLowerCase() + newText.slice(1);
+    }
     console.log(text + ' ' + newText);
     return newText;
 }
