@@ -1,11 +1,12 @@
+import { clearMessageListeners } from "./connection-manager.js";
 import { paintHomePage } from "./paint-home-page.js";
 import { paintSettingsPage } from "./paint-settings.js";
-import { clearMessageListeners } from "./connection-manager.js";
+import { paintWaitingRoom } from "./paint-waiting-room.js";
 
 const routes = {
     '/': {paint: paintHomePage, script: './home-page-script.js'},
     '/settings': {paint: paintSettingsPage, script: './settings-script.js'},
-    '/waiting-room': {paint: paintHomePage, script: './settings-script.js'}
+    '/waiting-room': {paint: paintWaitingRoom, script: './waiting-room-script.js'}
 }
 
 function handleRouteChange() {

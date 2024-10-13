@@ -76,6 +76,7 @@ wsServer.on("request", request => {
 	connection.on("message", receivedMessage => {
 		const message = JSON.parse(receivedMessage.utf8Data);
 		console.log(message);
+		console.log(message.method);
 		const handler = eventManager[message.method];
 		if (handler) {
 			handler(message, connection);
@@ -421,7 +422,7 @@ function handleVoteSkipSurvey(message, connection) {
 }
 /* End functions */
 
-const periodicallyCheck = setInterval(checkClientsConnected, 4000);
+//const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
 async function checkClientsConnected() {
 	const release = await mutex.acquire();

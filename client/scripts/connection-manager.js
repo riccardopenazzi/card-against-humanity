@@ -36,6 +36,7 @@ function connect() {
 }
 
 function send(message) {
+	console.log('Sending: ', message);
 	if (webSocket && webSocket.readyState === WebSocket.OPEN) {
 		webSocket.send(JSON.stringify(message));
 	} else {

@@ -1,6 +1,5 @@
-const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-const webSocketPort = window.location.port;
-let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+import { connect, send, addMessageListener } from './connection-manager.js';
+import { navigateTo } from './router.js';
 
 const debugMode = true;
 
@@ -11,19 +10,6 @@ let showError = document.getElementById('show-error');
 let gameStats = document.getElementById('game-stats');
 let playerUsername = document.getElementById('player-username');
 
-webSocket.onopen = () => {
-    const clientId = sessionStorage.getItem('clientId');
-    if (!clientId) {
-       window.location.href = '/';
-    } else {
-        const payLoad = {
-            'method': 'connect-again',
-            'clientId': clientId,
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-}
-
 btnConfirmUsername.addEventListener('click', event => {
     event.preventDefault();
     showError.innerText = '';
@@ -32,101 +18,104 @@ btnConfirmUsername.addEventListener('click', event => {
         const gameId = sessionStorage.getItem('gameId');
         const clientId = sessionStorage.getItem('clientId');
         const payLoad = {
-            'method': 'join',
+            method: 'join',
             'clientId': clientId,
             'gameId': gameId,
             'username': username,
         };
-        webSocket.send(JSON.stringify(payLoad));
+        send(payLoad);
     } else {
         showError.innerText = 'Username non valido, potrebbe contenere spazi o caratteri non consentiti. Utilizza solo lettere e numeri';
     }
 });
 
-webSocket.onmessage = receivedMessage => {
-    const message = JSON.parse(receivedMessage.data);
-    debugMode && console.log(message);
-
-    /*If clients receive this message it means it has been reconnected, if it's the host its game control are painted */
-    if (message.method === 'reconnected') {
-        if (sessionStorage.getItem('hostId')) {
-            createDivGameCode(title);
-            createDivBtnStart();
-            document.getElementById('btn-start-game').addEventListener('click', e => {
-                const payLoad = {
-                    'method': 'start-game',
-                    'gameId': sessionStorage.getItem('gameId'),
-                }
-                webSocket.send(JSON.stringify(payLoad));
-            });
-        }
-        txtUsername.addEventListener('input', inputEventAction);
-    }
-
-    if (message.method === 'update-players-list') {
-        let playersList = message.playersList;
-        if (sessionStorage.getItem('hostId')) {
-            document.getElementById('btn-start-game').disabled = false;
-            gameStats.innerText = 'Giocatori presenti ' + playersList.length;
-        }
-        if (message.clientId === sessionStorage.getItem('clientId')) {
-            playerUsername.innerText = 'Sei entrato come ' + message.username;
-            if (sessionStorage.getItem('hostId')) {
-                playerUsername.innerText += '\nQuando tutti i giocatori sono entrati avvia la partita'
-            } else {
-                playerUsername.innerText += '\n\nAttendi che l\'host avvii la partita'
-            }
-            txtUsername.removeEventListener('input', inputEventAction);
-            txtUsername.value = '';
-            txtUsername.setAttribute('disabled', 'true');
-            btnConfirmUsername.disabled = true;
-        }
-        let playerUl = document.getElementById('players-list');
-        playerUl.innerHTML = ''; //brutal way maybe to review but not now
-        playersList.forEach(username => {
-            let element = document.createElement('p');
-            element.innerHTML = username;
-            element.classList.add('new-amsterdam-regular');
-            playerUl.appendChild(element);
-        })
-    }
-
-    if (message.method === 'duplicated-username') {
-        showError.innerText = 'Username già in uso, scegline uno diverso';
-    }
-
-    if (message.method === 'start-game') {
-        window.location.href = '/playing-room';
-    }
-
-    if (message.method === 'check-connection') {
+if (sessionStorage.getItem('hostId')) {
+    createDivGameCode(title);
+    createDivBtnStart();
+    document.getElementById('btn-start-game').addEventListener('click', e => {
         const payLoad = {
-            'method': 'check-connection',
-            'clientId': sessionStorage.getItem('clientId'),
+            'method': 'start-game',
+            'gameId': sessionStorage.getItem('gameId'),
         }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-    
-    if (message.method === 'invalid-clientId') {
-        window.location.href = '/';
-    }
-    
-    if (message.method === 'server-error') {
-        window.location.href = '/';
+        send(payLoad);
+    });
+}
+
+txtUsername.addEventListener('input', inputEventAction);
+
+function handleMessage(message) {
+    debugMode && console.log('Received message: ', message);
+
+    const messageHandler = {
+        'update-players-list': handleUpdatePlayersList,
+        'duplicated-username': handleDuplicateUsername,
+        'start-game': handleStartGame,
+        'invalid-clientId': handleInvalidClientId,
+        'server-error': handleServerError,
+        'connection-trouble': handleConnectionTrouble,
+        'player-disconnected': handlePlayerDisconnected,
+        'player-disconnection-managed': handlePlayerDisconnectedManaged,
     }
 
-    if (message.method === 'connection-trouble') {
-        showPopup('single-disconnection-popup');
-    }
+    const handler = messageHandler[message.method];
+    handler && handler(message);
+}
 
-    if (message.method === 'player-disconnected') {
-        hidePopup('single-disconnection-popup')
-        showPopup('disconnection-popup');
+function handleUpdatePlayersList(message) {
+    let playersList = message.playersList;
+    if (sessionStorage.getItem('hostId')) {
+        document.getElementById('btn-start-game').disabled = false;
+        gameStats.innerText = 'Giocatori presenti ' + playersList.length;
     }
+    if (message.clientId === sessionStorage.getItem('clientId')) {
+        playerUsername.innerText = 'Sei entrato come ' + message.username;
+        if (sessionStorage.getItem('hostId')) {
+            playerUsername.innerText += '\nQuando tutti i giocatori sono entrati avvia la partita'
+        } else {
+            playerUsername.innerText += '\n\nAttendi che l\'host avvii la partita'
+        }
+        txtUsername.removeEventListener('input', inputEventAction);
+        txtUsername.value = '';
+        txtUsername.setAttribute('disabled', 'true');
+        btnConfirmUsername.disabled = true;
+    }
+    let playerUl = document.getElementById('players-list');
+    playerUl.innerHTML = ''; //brutal way maybe to review but not now
+    playersList.forEach(username => {
+        let element = document.createElement('p');
+        element.innerHTML = username;
+        element.classList.add('new-amsterdam-regular');
+        playerUl.appendChild(element);
+    });
+}
 
-    if (message.method === 'player-disconnection-managed') {
-        hidePopup('disconnection-popup');
-    }
+function handleDuplicateUsername() {
+    showError.innerText = 'Username già in uso, scegline uno diverso';
+}
+
+function handleStartGame() {
+    navigateTo('/playing-room');
+}
+
+function handleInvalidClientId() {
+    navigateTo('/');
+}
+
+function handleServerError() {
+    navigateTo('/');
+}
+
+function handleConnectionTrouble() {
+    showPopup('single-disconnection-popup');
+}
+
+function handlePlayerDisconnected() {
+    hidePopup('single-disconnection-popup');
+    showPopup('disconnection-popup');
+}
+
+function handlePlayerDisconnectedManaged() {
+    hidePopup('disconnection-popup');
 }
 
 function createDivGameCode(target) {    
@@ -165,3 +154,5 @@ function inputEventAction() {
         btnConfirmUsername.disabled = false : 
         btnConfirmUsername.disabled = true;
 }
+
+addMessageListener(handleMessage);

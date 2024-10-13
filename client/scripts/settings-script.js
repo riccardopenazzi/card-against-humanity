@@ -8,7 +8,6 @@ let winsValueIndicator = document.getElementById('win-number-value');
 let btnConfirmSettings = document.getElementById('btn-confirm-settings');
 let checkboxWhiteCardMode = document.getElementById('white-card-mode');
 
-// Sincronizza gli indicatori con gli input
 cardsValueIndicator.innerText = cardsInput.value;
 winsValueIndicator.innerText = winsInput.value;
 
@@ -23,15 +22,6 @@ winsInput.addEventListener('input', () => {
 btnConfirmSettings.addEventListener('click', () => {
     send({ method: 'connect' });
 });
-
-connect()
-    .then(() => {
-        console.log('Connected to WebSocket server.');
-        addMessageListener(handleMessage);
-    })
-    .catch((error) => {
-        alert("Connessione WebSocket non disponibile, potrebbero esserci problemi di rete. Riprova.");
-    });
 
 function handleMessage(message) {
     console.log('Received message:', message);
@@ -77,3 +67,5 @@ function handleInvalidClientId() {
 function handleServerError() {
     navigateTo('/');
 }
+
+addMessageListener(handleMessage);
