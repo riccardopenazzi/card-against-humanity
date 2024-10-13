@@ -98,7 +98,11 @@ class Game {
 
 	redistributeWhiteCardsPlayed() {
 		for (const [player, card] of Object.entries(this.currentManche.playedWhiteCards)) {
-			this._players[player].addNewCard(card);
+			if (card === CardVariants.EMPTY_CARD) {
+				this._players[player].addNewCard(ardVariants.EMPTY_CARD);
+			} else {
+				this._players[player].addNewCard(card);
+			}
 		}
 	}
 
