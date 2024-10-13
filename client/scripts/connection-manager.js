@@ -1,5 +1,5 @@
 let webSocket = null;
-const listeners = [];
+let listeners = [];
 
 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 const webSocketPort = window.location.port;
@@ -51,4 +51,8 @@ function notifyListeners(message) {
 	listeners.forEach(listener => listener(message));
 }
 
-export { connect, send, addMessageListener };
+function clearMessageListeners() {
+	listeners = [];
+}
+
+export { connect, send, addMessageListener, clearMessageListeners };

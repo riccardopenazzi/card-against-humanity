@@ -4,6 +4,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
 
 @import url('home-page.css');
+@import url('settings.css');
 
 body {
 	background-color: #2A2A2A;

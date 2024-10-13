@@ -75,7 +75,7 @@ wsServer.on("request", request => {
 
 	connection.on("message", receivedMessage => {
 		const message = JSON.parse(receivedMessage.utf8Data);
-		debugMode && console.log(message);
+		console.log(message);
 		const handler = eventManager[message.method];
 		if (handler) {
 			handler(message, connection);
