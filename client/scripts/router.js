@@ -3,12 +3,14 @@ import { paintHomePage } from "./paint-home-page.js";
 import { paintSettingsPage } from "./paint-settings.js";
 import { paintWaitingRoom } from "./paint-waiting-room.js";
 import { paintPlayingRoom } from "./paint-playing-room.js";
+import { paintScore } from "./paint-score.js";
 
 const routes = {
     '/': {paint: paintHomePage, script: './home-page-script.js'},
     '/settings': {paint: paintSettingsPage, script: './settings-script.js'},
     '/waiting-room': {paint: paintWaitingRoom, script: './waiting-room-script.js'},
     '/playing-room': {paint: paintPlayingRoom, script: './playing-room-script.js'},
+    '/score': {paint: paintScore, script: './score-script.js'},
 }
 
 function handleRouteChange() {

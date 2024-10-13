@@ -1,77 +1,63 @@
-const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-const webSocketPort = window.location.port;
-let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+import { connect, send, addMessageListener } from './connection-manager.js';
+import { navigateTo } from './router.js';
 
 const debugMode = true;
 
-webSocket.onopen = () => {
-    const clientId = sessionStorage.getItem('clientId');
-    if (!clientId) {
-       window.location.href = '/';
-    } else {
-        const payLoad = {
-            'method': 'connect-again',
-            'clientId': clientId,
-        }
-        webSocket.send(JSON.stringify(payLoad));
+function handleMessage(message) {
+    debugMode && console.log('Received message: ', message);
+
+    const messageHandler = {
+        'req-score': handleReqScore,
+        'new-manche': handleNewManche,
+        'counter-ready-players': handleCounterReadyPlayers,
+        'invalid-clientId': handleInvalidClientId,
+        'server-error': handleServerError,
+        'connection-trouble': handleConnectionTrouble,
+        'connection-trouble-managed': handleConnectionTroubleManaged,
+        'player-disconnected': handlePlayerDisconnected,
+        'player-disconnection-managed': handlePlayerDisconnectedManaged,
     }
+
+    const handler = messageHandler[message.method];
+    handler && handler(message);
 }
 
-webSocket.onmessage = receivedMessage => {
-    const message = JSON.parse(receivedMessage.data);
+function handleReqScore(message) {
+    showScores(message.score, message.readyPlayers);
+}
 
-    if (message.method === 'reconnected') {
-        const payLoad = {
-            'method': 'req-score',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
+function handleNewManche(message) {
+    sessionStorage.removeItem('hasVoted');
+    navigateTo('/playing-room');
+}
 
-    if (message.method === 'req-score') {
-        showScores(message.score, message.readyPlayers);
-    }
+function handleCounterReadyPlayers(message) {
+    document.getElementById('player-counter').innerText = 'Giocatori pronti: ' + message.readyPlayers;
+}
 
-    if (message.method === 'new-manche') {
-        sessionStorage.removeItem('hasVoted');
-        window.location.href = '/playing-room';
-    }
+function handleInvalidClientId(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'counter-ready-players') {
-        /* document.getElementById('player-counter').innerText = ''; */
-        document.getElementById('player-counter').innerText = 'Giocatori pronti: ' + message.readyPlayers;
-    }
+function handleServerError(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'check-connection') {
-        const payLoad = {
-            'method': 'check-connection',
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
+function handleConnectionTrouble(message) {
+    showPopup('single-disconnection-popup');
+}
 
-    if (message.method === 'invalid-clientId') {
-        window.location.href = '/';
-    }
+function handleConnectionTroubleManaged(message) {
+    hidePopup('single-disconnection-popup');
+}
 
-    if (message.method === 'server-error') {
-        window.location.href = '/';
-    }
+function handlePlayerDisconnected(message) {
+    hidePopup('single-disconnection-popup');
+    showPopup('disconnection-popup');
+}
 
-    if (message.method === 'connection-trouble') {
-        showPopup('single-disconnection-popup');
-    }
-
-    if (message.method === 'player-disconnected') {
-        hidePopup('single-disconnection-popup')
-        showPopup('disconnection-popup');
-    }
-
-    if (message.method === 'player-disconnection-managed') {
-        hidePopup('disconnection-popup');
-    }
-
+function handlePlayerDisconnectedManaged(message) {
+    hidePopup('disconnection-popup');
 }
 
 function showScores(scores, readyPlayers) {
@@ -102,10 +88,19 @@ function showScores(scores, readyPlayers) {
                 'method': 'new-manche',
                 'gameId': sessionStorage.getItem('gameId'),
             }
-            webSocket.send(JSON.stringify(payLoad));
+            send(payLoad);
         });
     } else {
         btn.setAttribute('disabled', 'true');
     }
     scoreRow.appendChild(btn);
 }
+
+addMessageListener(handleMessage);
+
+const payLoad = {
+    'method': 'req-score',
+    'clientId': sessionStorage.getItem('clientId'),
+    'gameId': sessionStorage.getItem('gameId'),
+}
+send(payLoad);
