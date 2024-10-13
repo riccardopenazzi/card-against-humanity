@@ -53,6 +53,7 @@ function handleMessage(message) {
         'invalid-clientId': handleInvalidClientId,
         'server-error': handleServerError,
         'connection-trouble': handleConnectionTrouble,
+        'connection-trouble-managed': handleConnectionTroubleManaged,
         'player-disconnected': handlePlayerDisconnected,
         'player-disconnection-managed': handlePlayerDisconnectedManaged,
     }
@@ -107,6 +108,10 @@ function handleServerError() {
 
 function handleConnectionTrouble() {
     showPopup('single-disconnection-popup');
+}
+
+function handleConnectionTroubleManaged() {
+    hidePopup('single-disconnection-popup');
 }
 
 function handlePlayerDisconnected() {

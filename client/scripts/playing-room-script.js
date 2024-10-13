@@ -1,6 +1,5 @@
-const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-const webSocketPort = window.location.port;
-let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+import { connect, send, addMessageListener } from './connection-manager.js';
+import { navigateTo } from './router.js';
 
 const debugMode = true;
 
@@ -18,211 +17,204 @@ let selectedCard = '';
 let blackCard = '';
 let selectedWinner = '';
 
-webSocket.onopen = () => {
-    const clientId = sessionStorage.getItem('clientId');
-    if (!clientId) {
-       window.location.href = '/';
-    } else {
-        const payLoad = {
-            'method': 'connect-again',
-            'clientId': clientId,
+
+btnNextCard.addEventListener('click', () => {
+    const payLoad = {
+        'method': 'show-next-card',
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
+});
+
+btnShowChooseWinner.addEventListener('click', () => {
+    const payLoad = {
+        'method': 'go-to-choosing-winner',
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
+});
+
+btnSkipCard.addEventListener('click', () => {
+    const payLoad = {
+        'method': 'req-black-card-change',
+        'gameId': sessionStorage.getItem('gameId'),
+        'clientId': sessionStorage.getItem('clientId'),
+    }
+    send(payLoad);
+});
+
+showScoreIcon.addEventListener('click', () => {
+    const payLoad = {
+        'method': 'req-score',
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
+});
+
+btnPopupScoreClose.addEventListener('click', () => {
+    const modalElement = document.getElementById('popup-score');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (modal) {
+        modal.hide(); // Nasconde la modale correttamente
+    }
+});
+
+function handleMessage(message) {
+    debugMode && console.log('Received message: ', message);
+
+    const messageHandler = {
+        'start-manche': handleStartManche,
+        'req-player-cards': handleReqPlayerCards,
+        'play-card': handlePlayCard,
+        'show-played-cards': handleShowPlayedCards,
+        'show-next-card': handleShowNextCard,
+        'choosing-winner': handleChoosingWinner,
+        'watch-score': handleWatchScore,
+        'win': handleWin,
+        'req-black-card-change': handleReqBlackCardChange,
+        'vote-skip-survey': handleVoteSkipSurvey,
+        'req-score': handleReqScore,
+        'skip-manche': handleSkipManche,
+        'invalid-clientId': handleInvalidClientId,
+        'server-error': handleServerError,
+        'connection-trouble': handleConnectionTrouble,
+        'connection-trouble-managed': handleConnectionTroubleManaged,
+        'player-disconnected': handlePlayerDisconnected,
+        'player-disconnection-managed': handlePlayerDisconnectedManaged,
+    }
+
+    const handler = messageHandler[message.method];
+    handler && handler(message);
+}
+
+function handleStartManche(message) {
+    document.getElementById('title').innerHTML = '';
+    document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
+    document.getElementById('black-card').innerText = message.blackCard;
+    blackCard = message.blackCard;
+    const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
+    sessionStorage.setItem('master', isMaster);
+    if (isMaster) {
+        if (message.allPlayersCompleted) {
+            fillMasterCardList(message.playedCards);
+        } else {
+            paintMessage('Aspetta che i giocatori scelgano la propria carta');
         }
-        webSocket.send(JSON.stringify(payLoad));
+    } else {
+        if (sessionStorage.getItem('hasPlayedCard')) {
+            paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+            btnSkipCard.style.display = 'none';
+        } else {
+            requestCardList();
+        }
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    btnNextCard.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'show-next-card',
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
+function handleReqPlayerCards(message) {
+    fillCardList(message.playerCards);
+}
 
-    btnShowChooseWinner.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'go-to-choosing-winner',
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
+function handlePlayCard(message) {
+    paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+    btnSkipCard.style.display = 'none';
+}
 
-    btnSkipCard.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'req-black-card-change',
-            'gameId': sessionStorage.getItem('gameId'),
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
-
-    showScoreIcon.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'req-score',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
-
-    btnPopupScoreClose.addEventListener('click', () => {
-        const modalElement = document.getElementById('popup-score');
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-            modal.hide(); // Nasconde la modale correttamente
-        }
-    });
-});
-
-webSocket.onmessage = receivedMessage => {
-    const message = JSON.parse(receivedMessage.data);
-    console.log(message);
-    if (message.method === 'reconnected') {
-        const payLoad = {
-            'method': 'start-manche',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-
-    if (message.method === 'start-manche') {
-        document.getElementById('title').innerHTML = '';
-        document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
-        document.getElementById('black-card').innerText = message.blackCard;
-        blackCard = message.blackCard;
-        const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
-        sessionStorage.setItem('master', isMaster);
-        if (isMaster) {
-            if (message.allPlayersCompleted) {
-                fillMasterCardList(message.playedCards);
-            } else {
-                paintMessage('Aspetta che i giocatori scelgano la propria carta');
-            }
-        } else {
-            if (sessionStorage.getItem('hasPlayedCard')) {
-                paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
-                btnSkipCard.style.display = 'none';
-            } else {
-                requestCardList();
-            }
-        }
-    }
-
-    if (message.method === 'req-player-cards') {
-        fillCardList(message.playerCards);
-    }
-
-    if (message.method === 'play-card') {
-        paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+function handleShowPlayedCards(message) {
+    document.getElementById('frame').innerHTML = '';
+    paintMessage('Ecco le carte giocate');
+    playedCards = Object.values(message.playedCards);
+    showSingleCard(playedCards.pop());
+    const isMaster = (sessionStorage.getItem('master') === 'true');
+    if (isMaster) {
         btnSkipCard.style.display = 'none';
-    }
-
-    if (message.method === 'show-played-cards') {
-        document.getElementById('frame').innerHTML = '';
-        paintMessage('Ecco le carte giocate');
-        playedCards = Object.values(message.playedCards);
-        showSingleCard(playedCards.pop());
-        const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster) {
-            btnSkipCard.style.display = 'none';
-            if (playedCards.length > 0) {
-                document.getElementById('btn-next-card').style.display = 'block';
-            } else {
-                document.getElementById('btn-show-choose-winner').style.display = 'block';
-            }
-         }
-    }
-
-    if (message.method === 'show-next-card') {
-        showSingleCard(playedCards.pop());
-        const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster && playedCards.length == 0) {
-            document.getElementById('btn-next-card').style.display = 'none';
+        if (playedCards.length > 0) {
+            document.getElementById('btn-next-card').style.display = 'block';
+        } else {
             document.getElementById('btn-show-choose-winner').style.display = 'block';
         }
     }
+}
 
-    if (message.method === 'choosing-winner') {
-        document.getElementById('single-card-frame').innerHTML = '';
-        const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster) {
-            document.getElementById('btn-show-choose-winner').style.display = 'none';
-            fillMasterCardList(message.playedCards);
-        } else {
-            paintMessage('Il master sta scegliendo il vincitore');
-        }
+function handleShowNextCard(message) {
+    showSingleCard(playedCards.pop());
+    const isMaster = (sessionStorage.getItem('master') === 'true');
+    if (isMaster && playedCards.length == 0) {
+        document.getElementById('btn-next-card').style.display = 'none';
+        document.getElementById('btn-show-choose-winner').style.display = 'block';
     }
+}
 
-    if (message.method === 'watch-score') {
-        sessionStorage.removeItem('hasPlayedCard');
-        window.location.href = '/score';
+function handleChoosingWinner(message) {
+    document.getElementById('single-card-frame').innerHTML = '';
+    const isMaster = (sessionStorage.getItem('master') === 'true');
+    if (isMaster) {
+        document.getElementById('btn-show-choose-winner').style.display = 'none';
+        fillMasterCardList(message.playedCards);
+    } else {
+        paintMessage('Il master sta scegliendo il vincitore');
     }
+}
 
-    if (message.method === 'win') {
-        window.location.href = '/final-ranking';
-    }
+function handleWatchScore(message) {
+    sessionStorage.removeItem('hasPlayedCard');
+    navigateTo('/score');
+}
 
-    if (message.method === 'req-black-card-change') {
-        showSkipCardSurvey();
-    }
+function handleWin(message) {
+    navigateTo('/final-ranking');
+}
 
-    if (message.method === 'vote-skip-survey') {
-        message.result && sessionStorage.removeItem('hasPlayedCard');
-        skipCardFrame.style.display = 'none';
-        const payLoad = {
-            'method': 'start-manche',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
+function handleReqBlackCardChange(message) {
+    showSkipCardSurvey();
+}
 
-    if (message.method === 'req-score') {
-        showScores(message.score);
-        const modalElement = document.getElementById('popup-score');
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
+function handleVoteSkipSurvey(message) {
+    message.result && sessionStorage.removeItem('hasPlayedCard');
+    skipCardFrame.style.display = 'none';
+    const payLoad = {
+        'method': 'start-manche',
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
     }
+    send(payLoad);
+}
 
-    if (message.method === 'check-connection') {
-        const payLoad = {
-            'method': 'check-connection',
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
+function handleReqScore(message) {
+    showScores(message.score);
+    const modalElement = document.getElementById('popup-score');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
 
-    if (message.method === 'invalid-clientId') {
-        window.location.href = '/';
-    }
+function handleSkipManche(message) {
+    sessionStorage.removeItem('hasPlayedCard');
+    navigateTo('/score');
+}
 
-    if (message.method === 'server-error') {
-        window.location.href = '/';
-    }
+function handleInvalidClientId(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'connection-trouble') {
-        showPopup('single-disconnection-popup');
-    }
+function handleServerError(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'player-disconnected') {
-        hidePopup('single-disconnection-popup')
-        showPopup('disconnection-popup');
-    }
+function handleConnectionTrouble(message) {
+    showPopup('single-disconnection-popup');
+}
 
-    if (message.method === 'player-disconnection-managed') {
-        hidePopup('disconnection-popup');
-    }
+function handleConnectionTroubleManaged(message) {
+    hidePopup('single-disconnection-popup');
+}
 
-    if (message.method === 'connection-trouble-managed') {
-        hidePopup('single-disconnection-popup');
-    }
+function handlePlayerDisconnected(message) {
+    hidePopup('single-disconnection-popup');
+    showPopup('disconnection-popup');
+}
 
-    if (message.method === 'skip-manche') {
-        sessionStorage.removeItem('hasPlayedCard');
-        location.href = '/score';
-    }
+function handlePlayerDisconnectedManaged(message) {
+    hidePopup('disconnection-popup');
 }
 
 function requestCardList() {
@@ -231,7 +223,7 @@ function requestCardList() {
         'gameId': sessionStorage.getItem('gameId'),
         'clientId': sessionStorage.getItem('clientId'),
     }
-    webSocket.send(JSON.stringify(payLoad));
+    send(payLoad);
 }
 
 function fillCardList(cardList) {
@@ -411,7 +403,7 @@ function showSkipCardSurvey() {
             'gameId': sessionStorage.getItem('gameId'),
             'vote': 'yes',
         }
-        webSocket.send(JSON.stringify(payLoad));
+        send(payLoad);
     });
 
     let btnCancel = document.createElement('button');
@@ -424,7 +416,7 @@ function showSkipCardSurvey() {
             'gameId': sessionStorage.getItem('gameId'),
             'vote': 'no',
         }
-        webSocket.send(JSON.stringify(payLoad));
+        send(payLoad);
     });
     btnContainer.appendChild(btnConfirm);
     btnContainer.appendChild(btnCancel);
@@ -446,7 +438,7 @@ function createConfirmBtn(card, emptyCard = false) {
                 'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
             };
             sessionStorage.setItem('hasPlayedCard', true);
-            webSocket.send(JSON.stringify(payLoad));
+            send(payLoad);
         }
     });
     return btn;
@@ -463,7 +455,7 @@ function createChooseWinnermBtn() {
                 'gameId': sessionStorage.getItem('gameId'),
                 'winner': selectedWinner,
             }
-            webSocket.send(JSON.stringify(payLoad));
+            send(payLoad);
         }
     });
     return btn;
@@ -526,3 +518,12 @@ function showPopup(popupId) {
 function hidePopup(popupId) {
     document.getElementById(popupId).classList.add('hidden');
 }
+
+addMessageListener(handleMessage);
+
+const payLoad = {
+    'method': 'start-manche',
+    'clientId': sessionStorage.getItem('clientId'),
+    'gameId': sessionStorage.getItem('gameId'),
+}
+send(payLoad);

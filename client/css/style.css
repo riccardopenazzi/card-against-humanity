@@ -6,6 +6,7 @@
 @import url('home-page.css');
 @import url('settings.css');
 @import url('waiting-room.css');
+@import url('playing-room.css');
 
 body {
 	background-color: #2A2A2A;
