@@ -26,6 +26,7 @@ app.get("/settings", (req, res) => res.sendFile(path.join(__dirname, "../client/
 app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/waiting-room.html")));
 app.get("/playing-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/playing-room.html")));
 app.get("/score", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/score.html")));
+app.get("/final-ranking", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/final-ranking.html")));
 
 // Start server
 server.listen(serverPort, () => console.log(`Server listening on port ${serverPort}`));
@@ -104,6 +105,7 @@ async function handleConnectAgain(message, connection) {
 	const release = await mutex.acquire();
 	try {
 		let clientId = message.clientId;
+		console.log(clientId);
 		if (checkStableConnection(clientId)) {
 			//if connection already exists
 			connectedClients[clientId].connection = connection;
@@ -269,14 +271,14 @@ function handlePlayCard(message, connection) {
 	}
 	let gameId = message.gameId;
 	let cardText = message.cardText;
-	let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
-	let choosenCard = games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1)[0];
-	if (choosenCard === CardVariants.EMPTY_CARD) {
-		console.log( message.createdSentence);
-		games[gameId].currentManche.addCard(clientId, message.createdSentence);
+	if (message.isEmptyCard) {
+		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == CardVariants.EMPTY_CARD);
+		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	} else {
-		games[gameId].currentManche.addCard(clientId, choosenCard);
+		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
+		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	}
+	games[gameId].currentManche.addCard(clientId, cardText);
 	const payLoad = {
 		'method': 'play-card',
 	}
@@ -456,7 +458,7 @@ async function checkClientsConnected() {
 				} else if (connectedClients[clientId].alive === 'started') {
 					connectedClients[clientId].alive = true;
 				} else {
-					console.log('Retrying connection check for', clientId);
+					debugMode && console.log('Retrying connection check for', clientId);
 					connectedClients[clientId].retryCount = (connectedClients[clientId].retryCount || 0) + 1;
 					if (connectedClients[clientId].retryCount == 1) {
 						const payLoad = {
@@ -471,7 +473,7 @@ async function checkClientsConnected() {
 						sendBroadcastMessage(getGameIdFromPlayer(clientId), payLoad);
 					}
 					if (connectedClients[clientId].retryCount > 4) {
-						console.log(clientId, ' disconnected after retries');
+						debugMode && console.log(clientId, ' disconnected after retries');
 						if (games[gameId] && games[gameId].players) {
 							games[gameId].removePlayer(clientId);
 							handleDisconnection(gameId, clientId);				

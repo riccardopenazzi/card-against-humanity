@@ -101,7 +101,6 @@ webSocket.onmessage = receivedMessage => {
                 paintMessage('Aspetta che i giocatori scelgano la propria carta');
             }
         } else {
-            /* const hasPlayedCard = ; */
             if (sessionStorage.getItem('hasPlayedCard')) {
                 paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
                 btnSkipCard.style.display = 'none';
@@ -162,7 +161,7 @@ webSocket.onmessage = receivedMessage => {
     }
 
     if (message.method === 'win') {
-        paintMessage(message.winner + ' ha vinto');
+        window.location.href = '/final-ranking';
     }
 
     if (message.method === 'req-black-card-change') {
@@ -241,12 +240,22 @@ function fillCardList(cardList) {
     cardListDiv.classList.add('scrollable-cards');
     createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
-    cardList.sort((a, b) => (a === CardVariants.EMPTY_CARD ? 1 : -1)).reverse().forEach(card => {
+
+    const emptyCard = cardList.filter(card => card === CardVariants.EMPTY_CARD);
+    const otherCards = cardList.filter(card => card !== CardVariants.EMPTY_CARD);
+
+    otherCards.reverse().forEach(card => {
         cardListDiv.appendChild(createCard(card));
     });
+
+    if (emptyCard.length > 0) {
+        cardListDiv.insertBefore(createCard(emptyCard[0]), cardListDiv.firstChild);
+    }
+
     const btnConfirm = createConfirmBtn();
     frame.appendChild(btnConfirm);
 }
+
 
 function createCard(card) {
     let cardDiv = document.createElement('div');
@@ -276,7 +285,7 @@ function handleCardClick(card, cardDiv, internalCardElement) {
     if (selectedCardElement) {
         selectedCardElement.classList.remove('selected-card');
     }
-    selectedCard = card === CardVariants.EMPTY_CARD ? internalCardElement.value : card;
+    selectedCard = card;
     cardDiv.classList.add('selected-card');
 }
 
@@ -311,7 +320,9 @@ function createBlackCard(card, singleCard = false, clientId) {
     let cardTextTranformed = modifyCardText(card);
     console.log(cardTextTranformed);
     let cardText = blackCard.replace(/_/g, `<span class="underline-text">${cardTextTranformed}</span>`);
+    console.log(cardText);
     cardText = cardText.charAt(0).toUpperCase() + cardText.slice(1);
+    console.log(cardText);
     let cardDiv = document.createElement('div');
     cardDiv.classList.add('card', 'black-card');
     singleCard && cardDiv.classList.add('single-card');
@@ -339,11 +350,24 @@ function handleBlackCardClick(clientId, cardDiv) {
 }
 
 function modifyCardText(text) {
+    console.log(text)
     let newText = text;
+    let underscoreIndex = blackCard.indexOf('_');
+    /*If present remove last . */
     if (newText.endsWith('.')) {
         newText = newText.slice(0, -1);
     }
-    newText = newText.charAt(0).toLowerCase() + newText.slice(1);
+    /*First char upper case if black card start with _ or if char before _ is ? or ! */
+    if (blackCard.startsWith(' _') || 
+            blackCard.startsWith('_') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 2] === '?') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 1] === '?') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 2] === '!') ||
+            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 1] === '!') ) {
+        (newText = newText.charAt(0).toUpperCase() + newText.slice(1));
+    } else {
+        newText = newText.charAt(0).toLowerCase() + newText.slice(1);
+    }
     console.log(text + ' ' + newText);
     return newText;
 }
@@ -418,7 +442,8 @@ function createConfirmBtn(card, emptyCard = false) {
                 'method': 'play-card',
                 'clientId': sessionStorage.getItem('clientId'),
                 'gameId': sessionStorage.getItem('gameId'),
-                'cardText': selectedCard,
+                'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
             };
             sessionStorage.setItem('hasPlayedCard', true);
             webSocket.send(JSON.stringify(payLoad));
