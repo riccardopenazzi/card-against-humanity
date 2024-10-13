@@ -19,7 +19,12 @@ function handleRouteChange() {
     const route = routes[path];
     if (route) {
         route.paint();
-        import(route.script);
+        import(route.script).then((module) => {
+            if (typeof module.startScript === 'function') {
+                module.startScript();
+            }
+        }).catch(error => {
+        });
     }
 }
 

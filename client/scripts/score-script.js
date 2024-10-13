@@ -96,11 +96,14 @@ function showScores(scores, readyPlayers) {
     scoreRow.appendChild(btn);
 }
 
-addMessageListener(handleMessage);
-
-const payLoad = {
-    'method': 'req-score',
-    'clientId': sessionStorage.getItem('clientId'),
-    'gameId': sessionStorage.getItem('gameId'),
+function startScript() {
+    addMessageListener(handleMessage);
+    const payLoad = {
+        'method': 'req-score',
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
 }
-send(payLoad);
+
+export { startScript };

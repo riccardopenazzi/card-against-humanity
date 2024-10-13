@@ -6,27 +6,6 @@ const btnJoin = document.getElementById('btn-join-game');
 const btnCreate = document.getElementById('btn-create-game');
 const debugMode = true;
 
-btnCreate.addEventListener('click', () => {
-    navigateTo('/settings');
-});
-
-btnJoin.addEventListener('click', () => {
-	send({method: 'connect'});
-});
-
-inputCode.addEventListener('input', () => {
-    btnJoin.disabled = inputCode.value.trim().length !== 6;
-});
-
-connect()
-    .then(() => {
-        debugMode && console.log('Connected to WebSocket server.');
-        addMessageListener(handleMessage);
-    })
-    .catch((error) => {
-        alert("Connessione WebSocket non disponibile, potrebbero esserci problemi dovuti alla rete. Ricarica la pagina e riprova.");
-    });
-
 function handleMessage(message) {
     debugMode && console.log('Received message:', message);
 
@@ -82,3 +61,28 @@ function showError(message) {
     const errorElement = document.getElementById('show-error');
     errorElement.innerText = message;
 }
+
+function startScript() {
+    btnCreate.addEventListener('click', () => {
+        navigateTo('/settings');
+    });
+    
+    btnJoin.addEventListener('click', () => {
+        send({method: 'connect'});
+    });
+    
+    inputCode.addEventListener('input', () => {
+        btnJoin.disabled = inputCode.value.trim().length !== 6;
+    });
+    
+    connect()
+        .then(() => {
+            debugMode && console.log('Connected to WebSocket server.');
+            addMessageListener(handleMessage);
+        })
+        .catch((error) => {
+            alert("Connessione WebSocket non disponibile, potrebbero esserci problemi dovuti alla rete. Ricarica la pagina e riprova.");
+        });
+}
+
+export { startScript };

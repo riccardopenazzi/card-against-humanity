@@ -15,7 +15,7 @@ export function paintPlayingRoom() {
             <div id="frame" class="mt-5"></div>
             <div id="skip-card-frame">
                 <div class="flex-column d-flex align-items-center" id="internal-skip-card-frame">
-                    <button class="btn-skip-card new-amsterdam-regular mt-2" id="btn-skip-card">Salta carta</button>
+
                 </div>
             </div>
         </div>
@@ -52,5 +52,6 @@ export function paintPlayingRoom() {
         </div>
     </div>
 	`;
+
 	appDiv.innerHTML = playingRoomContent;
 }

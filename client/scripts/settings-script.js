@@ -8,21 +8,6 @@ let winsValueIndicator = document.getElementById('win-number-value');
 let btnConfirmSettings = document.getElementById('btn-confirm-settings');
 let checkboxWhiteCardMode = document.getElementById('white-card-mode');
 
-cardsValueIndicator.innerText = cardsInput.value;
-winsValueIndicator.innerText = winsInput.value;
-
-cardsInput.addEventListener('input', () => {
-    cardsValueIndicator.innerText = cardsInput.value;
-});
-
-winsInput.addEventListener('input', () => {
-    winsValueIndicator.innerText = winsInput.value;
-});
-
-btnConfirmSettings.addEventListener('click', () => {
-    send({ method: 'connect' });
-});
-
 function handleMessage(message) {
     console.log('Received message:', message);
 
@@ -68,4 +53,24 @@ function handleServerError() {
     navigateTo('/');
 }
 
-addMessageListener(handleMessage);
+function startScript() {
+    cardsValueIndicator.innerText = cardsInput.value;
+    winsValueIndicator.innerText = winsInput.value;
+    
+    cardsInput.addEventListener('input', () => {
+        cardsValueIndicator.innerText = cardsInput.value;
+    });
+    
+    winsInput.addEventListener('input', () => {
+        winsValueIndicator.innerText = winsInput.value;
+    });
+    
+    btnConfirmSettings.addEventListener('click', () => {
+        send({ method: 'connect' });
+    });
+
+    addMessageListener(handleMessage);
+}
+
+export { startScript };
+

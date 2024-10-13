@@ -5,7 +5,7 @@ const debugMode = true;
 
 let btnNextCard = document.getElementById('btn-next-card');
 let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
-let btnSkipCard = document.getElementById('btn-skip-card');
+let btnSkipCard;
 let skipCardFrame = document.getElementById('skip-card-frame');
 let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
@@ -16,49 +16,6 @@ let playedCards = [];
 let selectedCard = '';
 let blackCard = '';
 let selectedWinner = '';
-
-
-btnNextCard.addEventListener('click', () => {
-    const payLoad = {
-        'method': 'show-next-card',
-        'gameId': sessionStorage.getItem('gameId'),
-    }
-    send(payLoad);
-});
-
-btnShowChooseWinner.addEventListener('click', () => {
-    const payLoad = {
-        'method': 'go-to-choosing-winner',
-        'gameId': sessionStorage.getItem('gameId'),
-    }
-    send(payLoad);
-});
-
-btnSkipCard.addEventListener('click', () => {
-    const payLoad = {
-        'method': 'req-black-card-change',
-        'gameId': sessionStorage.getItem('gameId'),
-        'clientId': sessionStorage.getItem('clientId'),
-    }
-    send(payLoad);
-});
-
-showScoreIcon.addEventListener('click', () => {
-    const payLoad = {
-        'method': 'req-score',
-        'clientId': sessionStorage.getItem('clientId'),
-        'gameId': sessionStorage.getItem('gameId'),
-    }
-    send(payLoad);
-});
-
-btnPopupScoreClose.addEventListener('click', () => {
-    const modalElement = document.getElementById('popup-score');
-    const modal = bootstrap.Modal.getInstance(modalElement);
-    if (modal) {
-        modal.hide(); // Nasconde la modale correttamente
-    }
-});
 
 function handleMessage(message) {
     debugMode && console.log('Received message: ', message);
@@ -519,11 +476,92 @@ function hidePopup(popupId) {
     document.getElementById(popupId).classList.add('hidden');
 }
 
-addMessageListener(handleMessage);
-
-const payLoad = {
-    'method': 'start-manche',
-    'clientId': sessionStorage.getItem('clientId'),
-    'gameId': sessionStorage.getItem('gameId'),
+function createBtnSkipCard() {
+    const divSkip = document.getElementById('internal-skip-card-frame');
+    btnSkipCard = document.createElement('button');
+    btnSkipCard.classList.add('btn-skip-card', 'new-amsterdam-regular', 'mt-2');
+    btnSkipCard.setAttribute('id', 'btn-skip-card');
+    btnSkipCard.innerText = 'Salta carta';
+    btnSkipCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-black-card-change',
+            'gameId': sessionStorage.getItem('gameId'),
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        send(payLoad);
+    });
+    divSkip.appendChild(btnSkipCard);
 }
-send(payLoad);
+
+function createBtnNextCard() {
+    const container = document.getElementById('single-card-frame');
+    btnNextCard = document.createElement('button');
+    btnNextCard.classList.add('btn-next-card', 'new-amsterdam-regular', 'mt-2');
+    btnNextCard.setAttribute('id', 'btn-next-card');
+    btnNextCard.innerText = 'Salta carta';
+    btnNextCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-black-card-change',
+            'gameId': sessionStorage.getItem('gameId'),
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        send(payLoad);
+    });
+    divSkip.appendChild(btnNextCard);
+}
+
+function startScript() {
+    createBtnSkipCard();
+
+    btnNextCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'show-next-card',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    });
+    
+    btnShowChooseWinner.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'go-to-choosing-winner',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    });
+    
+    /* btnSkipCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-black-card-change',
+            'gameId': sessionStorage.getItem('gameId'),
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        send(payLoad);
+    }); */
+    
+    showScoreIcon.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-score',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    });
+    
+    btnPopupScoreClose.addEventListener('click', () => {
+        const modalElement = document.getElementById('popup-score');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+            modal.hide(); // Nasconde la modale correttamente
+        }
+    });
+    addMessageListener(handleMessage);
+    
+    const payLoad = {
+        'method': 'start-manche',
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
+}
+
+export { startScript };

@@ -10,39 +10,6 @@ let showError = document.getElementById('show-error');
 let gameStats = document.getElementById('game-stats');
 let playerUsername = document.getElementById('player-username');
 
-btnConfirmUsername.addEventListener('click', event => {
-    event.preventDefault();
-    showError.innerText = '';
-    const username = txtUsername.value;
-    if (checkUsername(username)) {
-        const gameId = sessionStorage.getItem('gameId');
-        const clientId = sessionStorage.getItem('clientId');
-        const payLoad = {
-            method: 'join',
-            'clientId': clientId,
-            'gameId': gameId,
-            'username': username,
-        };
-        send(payLoad);
-    } else {
-        showError.innerText = 'Username non valido, potrebbe contenere spazi o caratteri non consentiti. Utilizza solo lettere e numeri';
-    }
-});
-
-if (sessionStorage.getItem('hostId')) {
-    createDivGameCode(title);
-    createDivBtnStart();
-    document.getElementById('btn-start-game').addEventListener('click', e => {
-        const payLoad = {
-            'method': 'start-game',
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        send(payLoad);
-    });
-}
-
-txtUsername.addEventListener('input', inputEventAction);
-
 function handleMessage(message) {
     debugMode && console.log('Received message: ', message);
 
@@ -160,4 +127,42 @@ function inputEventAction() {
         btnConfirmUsername.disabled = true;
 }
 
-addMessageListener(handleMessage);
+function startScript() {
+    btnConfirmUsername.addEventListener('click', event => {
+        event.preventDefault();
+        showError.innerText = '';
+        const username = txtUsername.value;
+        if (checkUsername(username)) {
+            const gameId = sessionStorage.getItem('gameId');
+            const clientId = sessionStorage.getItem('clientId');
+            const payLoad = {
+                method: 'join',
+                'clientId': clientId,
+                'gameId': gameId,
+                'username': username,
+            };
+            send(payLoad);
+        } else {
+            showError.innerText = 'Username non valido, potrebbe contenere spazi o caratteri non consentiti. Utilizza solo lettere e numeri';
+        }
+    });
+    
+    if (sessionStorage.getItem('hostId')) {
+        createDivGameCode(title);
+        createDivBtnStart();
+        document.getElementById('btn-start-game').addEventListener('click', e => {
+            const payLoad = {
+                'method': 'start-game',
+                'gameId': sessionStorage.getItem('gameId'),
+            }
+            send(payLoad);
+        });
+    }
+    
+    txtUsername.addEventListener('input', inputEventAction);
+
+    addMessageListener(handleMessage);
+}
+
+export { startScript };
+
