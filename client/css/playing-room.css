@@ -41,10 +41,6 @@
     border: 2px solid #343a40;
 }
 
-.card.empty-card {
-    background-color: rgb(230, 146, 146);
-}
-
 textarea {
     border-radius: 3px;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
