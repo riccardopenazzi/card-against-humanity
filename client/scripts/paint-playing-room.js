@@ -1,27 +1,30 @@
 export function paintPlayingRoom() {
 	const appDiv = document.getElementById('app');
 	appDiv.innerHTML = '';
+    /* I pulsanti per 'prossima carta' e 'vai alla scelta vincitore' sono inseriti da js dopo il div 'single-card-frame' */
 	const playingRoomContent = `
 		<div class="row text-center">
         <h1 class="new-amsterdam-regular text-center mt-3 mb-3" id="title">Manche </h1>
-        <div class="col-12">
-            <svg xmlns="http://www.w3.org/2000/svg" id="show-score-icon" width="27" height="27" fill="currentColor" class="bi bi-list mb-3 show-score-icon" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
-            </svg>
-            <div id="standard-frame">
-                <p class="shadows-into-light-regular">La frase da completare è:</p>
-                <p id="black-card" class="poetsen-one-regular"></p>
-            </div>
-            <div id="frame" class="mt-5"></div>
-            <div id="skip-card-frame">
-                <div class="flex-column d-flex align-items-center" id="internal-skip-card-frame">
+        <div class="col-12" id="main-frame">
+            
+            <div class="row">
+                <div class="col-12">
+                    <div id="standard-frame">
+                        <p class="shadows-into-light-regular">La frase da completare è:</p>
+                        <p id="black-card" class="poetsen-one-regular"></p>
+                    </div>
+                    <div id="frame" class="mt-5"></div>
+                    <div id="skip-card-frame">
+                        <div class="flex-column d-flex align-items-center" id="internal-skip-card-frame">
 
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-12 d-flex flex-column align-items-center">
             <div id="single-card-frame"></div>
-            <button class="btn-next-card new-amsterdam-regular mt-2" id="btn-next-card" style="display: none;">Prossima carta</button>
+            
             <button class="btn-show-choose-winner new-amsterdam-regular mt-2" id="btn-show-choose-winner" style="display: none;">Vai alla scelta vincitore</button>
         </div>
     </div>

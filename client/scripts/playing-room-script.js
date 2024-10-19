@@ -3,13 +3,14 @@ import { navigateTo } from './router.js';
 
 const debugMode = true;
 
-let btnNextCard = document.getElementById('btn-next-card');
-let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
+/* let btnNextCard = document.getElementById('btn-next-card'); */
+let btnNextCard;
+let btnShowChooseWinner;
 let btnSkipCard;
 let skipCardFrame = document.getElementById('skip-card-frame');
 let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
-let showScoreIcon = document.getElementById('show-score-icon');
+let showScoreIcon;
 let btnPopupScoreClose = document.getElementById('btn-popup-score-close');
 
 let playedCards = [];
@@ -86,9 +87,9 @@ function handleShowPlayedCards(message) {
     if (isMaster) {
         btnSkipCard.style.display = 'none';
         if (playedCards.length > 0) {
-            document.getElementById('btn-next-card').style.display = 'block';
+            btnNextCard.classList.remove('hidden');
         } else {
-            document.getElementById('btn-show-choose-winner').style.display = 'block';
+            btnShowChooseWinner.classList.remove('hidden');
         }
     }
 }
@@ -98,7 +99,7 @@ function handleShowNextCard(message) {
     const isMaster = (sessionStorage.getItem('master') === 'true');
     if (isMaster && playedCards.length == 0) {
         document.getElementById('btn-next-card').style.display = 'none';
-        document.getElementById('btn-show-choose-winner').style.display = 'block';
+        btnShowChooseWinner.classList.remove('hidden');
     }
 }
 
@@ -106,7 +107,7 @@ function handleChoosingWinner(message) {
     document.getElementById('single-card-frame').innerHTML = '';
     const isMaster = (sessionStorage.getItem('master') === 'true');
     if (isMaster) {
-        document.getElementById('btn-show-choose-winner').style.display = 'none';
+        btnShowChooseWinner.classList.add('hidden');
         fillMasterCardList(message.playedCards);
     } else {
         paintMessage('Il master sta scegliendo il vincitore');
@@ -496,31 +497,26 @@ function createBtnSkipCard() {
 function createBtnNextCard() {
     const container = document.getElementById('single-card-frame');
     btnNextCard = document.createElement('button');
-    btnNextCard.classList.add('btn-next-card', 'new-amsterdam-regular', 'mt-2');
+    btnNextCard.classList.add('btn-next-card', 'new-amsterdam-regular', 'mt-2', 'hidden');
     btnNextCard.setAttribute('id', 'btn-next-card');
-    btnNextCard.innerText = 'Salta carta';
+    btnNextCard.innerText = 'Prossima carta';
     btnNextCard.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'req-black-card-change',
-            'gameId': sessionStorage.getItem('gameId'),
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        send(payLoad);
-    });
-    divSkip.appendChild(btnNextCard);
-}
-
-function startScript() {
-    createBtnSkipCard();
-
-    btnNextCard.addEventListener('click', () => {
+        console.log('click su nextcard');
         const payLoad = {
             'method': 'show-next-card',
             'gameId': sessionStorage.getItem('gameId'),
         }
         send(payLoad);
     });
-    
+    container.insertAdjacentElement("afterend", btnNextCard);
+}
+
+function createBtnShowChooseWinner() {
+    const container = document.getElementById('single-card-frame');
+    btnShowChooseWinner = document.createElement('button');
+    btnShowChooseWinner.classList.add('btn-show-choose-winner', 'new-amsterdam-regular', 'mt-2', 'hidden');
+    btnShowChooseWinner.setAttribute('id', 'btn-show-choose-winner');
+    btnShowChooseWinner.innerText = 'Vai alla scelta vincitore';
     btnShowChooseWinner.addEventListener('click', () => {
         const payLoad = {
             'method': 'go-to-choosing-winner',
@@ -528,16 +524,18 @@ function startScript() {
         }
         send(payLoad);
     });
-    
-    /* btnSkipCard.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'req-black-card-change',
-            'gameId': sessionStorage.getItem('gameId'),
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        send(payLoad);
-    }); */
-    
+    container.insertAdjacentElement("afterend", btnShowChooseWinner);
+}
+
+function createShowScoreIcon() {
+    const container = document.getElementById('main-frame');
+    let row = document.createElement('div');
+    row.classList.add('row');
+    let iconContainer = document.createElement('div');
+    iconContainer.classList.add('col-12', 'd-flex', 'justify-content-end');
+    showScoreIcon = document.createElement('i');
+    showScoreIcon.classList.add('bi', 'bi-trophy', 'show-score-icon', 'mb-3');
+    showScoreIcon.setAttribute('id', 'show-score-icon');
     showScoreIcon.addEventListener('click', () => {
         const payLoad = {
             'method': 'req-score',
@@ -546,6 +544,24 @@ function startScript() {
         }
         send(payLoad);
     });
+    iconContainer.appendChild(showScoreIcon);
+    row.appendChild(iconContainer);
+    container.insertBefore(row, container.firstChild);
+}
+
+function startScript() {
+    createBtnSkipCard();
+    createBtnNextCard();
+    createBtnShowChooseWinner();
+    createShowScoreIcon();
+    /* showScoreIcon.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-score',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    }); */
     
     btnPopupScoreClose.addEventListener('click', () => {
         const modalElement = document.getElementById('popup-score');
@@ -555,7 +571,7 @@ function startScript() {
         }
     });
     addMessageListener(handleMessage);
-    
+    console.log('Preparo start-manche')
     const payLoad = {
         'method': 'start-manche',
         'clientId': sessionStorage.getItem('clientId'),
