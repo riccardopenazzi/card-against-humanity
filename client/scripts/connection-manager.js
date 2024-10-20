@@ -1,5 +1,6 @@
 let webSocket = null;
 let listeners = [];
+let isReconnecting = false;
 
 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 const webSocketPort = window.location.port;
@@ -15,6 +16,7 @@ function connect() {
 
 		webSocket.onopen = () => {
 			console.log('WebSocket connection established');
+			isReconnecting = false;
 			resolve(webSocket);
 		};
 
@@ -31,7 +33,30 @@ function connect() {
 		webSocket.onclose = () => {
 			console.log('WebSocket connection closed');
 			webSocket = null;
+			handleReconnection();
 		};
+	});
+}
+
+function handleReconnection() {
+	if (isReconnecting) return;
+
+	isReconnecting = true;
+	let retryInterval = 1000;
+
+	return new Promise((resolve) => {
+		const attemptReconnect = () => {
+			console.log('Attempting to reconnect...');
+			connect().then(() => {
+				console.log('Reconnected successfully.');
+				send({ method: 'connect-again', clientId: sessionStorage.getItem('clientId') });
+				resolve();
+			}).catch((error) => {
+				console.error('Reconnection failed:', error);
+				setTimeout(attemptReconnect, retryInterval);
+			});
+		};
+		attemptReconnect();
 	});
 }
 
@@ -41,6 +66,9 @@ function send(message) {
 		webSocket.send(JSON.stringify(message));
 	} else {
 		console.warn("WebSocket is not open. Message not sent:", message);
+		handleReconnection().then(() => {
+			webSocket.send(JSON.stringify(message));
+		});
 	}
 }
 

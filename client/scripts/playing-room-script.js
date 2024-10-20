@@ -344,6 +344,7 @@ function showScores(scores) {
 
 function showSkipCardSurvey() {
     document.getElementById('frame').innerHTML = '';
+    console.log(internalSkipCardFrame);
     internalSkipCardFrame.innerHTML = '';
     let p = document.createElement('p');
     p.innerHTML = 'Sei daccordo con la scelta di saltare questa carta?';
@@ -380,6 +381,7 @@ function showSkipCardSurvey() {
     btnContainer.appendChild(btnCancel);
     internalSkipCardFrame.appendChild(p);
     internalSkipCardFrame.appendChild(btnContainer);
+    console.log('Fine paint skip card survey')
 }
 
 function createConfirmBtn(card, emptyCard = false) {
@@ -478,7 +480,7 @@ function hidePopup(popupId) {
 }
 
 function createBtnSkipCard() {
-    const divSkip = document.getElementById('internal-skip-card-frame');
+    internalSkipCardFrame.innerHTML = '';
     btnSkipCard = document.createElement('button');
     btnSkipCard.classList.add('btn-skip-card', 'new-amsterdam-regular', 'mt-2');
     btnSkipCard.setAttribute('id', 'btn-skip-card');
@@ -491,7 +493,7 @@ function createBtnSkipCard() {
         }
         send(payLoad);
     });
-    divSkip.appendChild(btnSkipCard);
+    internalSkipCardFrame.appendChild(btnSkipCard);
 }
 
 function createBtnNextCard() {
@@ -550,6 +552,7 @@ function createShowScoreIcon() {
 }
 
 function startScript() {
+    console.log('Start script chiamata')
     createBtnSkipCard();
     createBtnNextCard();
     createBtnShowChooseWinner();

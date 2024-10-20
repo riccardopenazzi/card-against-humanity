@@ -13,18 +13,20 @@ const routes = {
     '/score': {paint: paintScore, script: './score-script.js'},
 }
 
-function handleRouteChange() {
+async function handleRouteChange() {
     clearMessageListeners();
     const path = window.location.hash.slice(1) || '/';
     const route = routes[path];
     if (route) {
-        route.paint();
-        import(route.script).then((module) => {
+        try {
+            await route.paint();
+            const module = await import(route.script);
             if (typeof module.startScript === 'function') {
                 module.startScript();
             }
-        }).catch(error => {
-        });
+        } catch (error) {
+            console.error("Error during script loading", error);
+        }
     }
 }
 
