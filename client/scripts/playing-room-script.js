@@ -1,16 +1,16 @@
-const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-const webSocketPort = window.location.port;
-let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+import { connect, send, addMessageListener } from './connection-manager.js';
+import { navigateTo } from './router.js';
 
 const debugMode = true;
 
-let btnNextCard = document.getElementById('btn-next-card');
-let btnShowChooseWinner = document.getElementById('btn-show-choose-winner');
-let btnSkipCard = document.getElementById('btn-skip-card');
+/* let btnNextCard = document.getElementById('btn-next-card'); */
+let btnNextCard;
+let btnShowChooseWinner;
+let btnSkipCard;
 let skipCardFrame = document.getElementById('skip-card-frame');
 let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
-let showScoreIcon = document.getElementById('show-score-icon');
+let showScoreIcon;
 let btnPopupScoreClose = document.getElementById('btn-popup-score-close');
 
 let playedCards = [];
@@ -18,211 +18,161 @@ let selectedCard = '';
 let blackCard = '';
 let selectedWinner = '';
 
-webSocket.onopen = () => {
-    const clientId = sessionStorage.getItem('clientId');
-    if (!clientId) {
-       window.location.href = '/';
-    } else {
-        const payLoad = {
-            'method': 'connect-again',
-            'clientId': clientId,
+function handleMessage(message) {
+    debugMode && console.log('Received message: ', message);
+
+    const messageHandler = {
+        'start-manche': handleStartManche,
+        'req-player-cards': handleReqPlayerCards,
+        'play-card': handlePlayCard,
+        'show-played-cards': handleShowPlayedCards,
+        'show-next-card': handleShowNextCard,
+        'choosing-winner': handleChoosingWinner,
+        'watch-score': handleWatchScore,
+        'win': handleWin,
+        'req-black-card-change': handleReqBlackCardChange,
+        'vote-skip-survey': handleVoteSkipSurvey,
+        'req-score': handleReqScore,
+        'skip-manche': handleSkipManche,
+        'invalid-clientId': handleInvalidClientId,
+        'server-error': handleServerError,
+        'connection-trouble': handleConnectionTrouble,
+        'connection-trouble-managed': handleConnectionTroubleManaged,
+        'player-disconnected': handlePlayerDisconnected,
+        'player-disconnection-managed': handlePlayerDisconnectedManaged,
+    }
+
+    const handler = messageHandler[message.method];
+    handler && handler(message);
+}
+
+function handleStartManche(message) {
+    document.getElementById('title').innerHTML = '';
+    document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
+    document.getElementById('black-card').innerText = message.blackCard;
+    blackCard = message.blackCard;
+    const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
+    sessionStorage.setItem('master', isMaster);
+    if (isMaster) {
+        if (message.allPlayersCompleted) {
+            fillMasterCardList(message.playedCards);
+        } else {
+            paintMessage('Aspetta che i giocatori scelgano la propria carta');
         }
-        webSocket.send(JSON.stringify(payLoad));
+    } else {
+        if (sessionStorage.getItem('hasPlayedCard')) {
+            paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+            btnSkipCard.style.display = 'none';
+        } else {
+            requestCardList();
+        }
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    btnNextCard.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'show-next-card',
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
+function handleReqPlayerCards(message) {
+    fillCardList(message.playerCards);
+}
 
-    btnShowChooseWinner.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'go-to-choosing-winner',
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
+function handlePlayCard(message) {
+    paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+    btnSkipCard.style.display = 'none';
+}
 
-    btnSkipCard.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'req-black-card-change',
-            'gameId': sessionStorage.getItem('gameId'),
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
-
-    showScoreIcon.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'req-score',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    });
-
-    btnPopupScoreClose.addEventListener('click', () => {
-        const modalElement = document.getElementById('popup-score');
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-            modal.hide(); // Nasconde la modale correttamente
-        }
-    });
-});
-
-webSocket.onmessage = receivedMessage => {
-    const message = JSON.parse(receivedMessage.data);
-    console.log(message);
-    if (message.method === 'reconnected') {
-        const payLoad = {
-            'method': 'start-manche',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
-
-    if (message.method === 'start-manche') {
-        document.getElementById('title').innerHTML = '';
-        document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
-        document.getElementById('black-card').innerText = message.blackCard;
-        blackCard = message.blackCard;
-        const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
-        sessionStorage.setItem('master', isMaster);
-        if (isMaster) {
-            if (message.allPlayersCompleted) {
-                fillMasterCardList(message.playedCards);
-            } else {
-                paintMessage('Aspetta che i giocatori scelgano la propria carta');
-            }
-        } else {
-            if (sessionStorage.getItem('hasPlayedCard')) {
-                paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
-                btnSkipCard.style.display = 'none';
-            } else {
-                requestCardList();
-            }
-        }
-    }
-
-    if (message.method === 'req-player-cards') {
-        fillCardList(message.playerCards);
-    }
-
-    if (message.method === 'play-card') {
-        paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+function handleShowPlayedCards(message) {
+    document.getElementById('frame').innerHTML = '';
+    paintMessage('Ecco le carte giocate');
+    playedCards = Object.values(message.playedCards);
+    showSingleCard(playedCards.pop());
+    const isMaster = (sessionStorage.getItem('master') === 'true');
+    if (isMaster) {
         btnSkipCard.style.display = 'none';
-    }
-
-    if (message.method === 'show-played-cards') {
-        document.getElementById('frame').innerHTML = '';
-        paintMessage('Ecco le carte giocate');
-        playedCards = Object.values(message.playedCards);
-        showSingleCard(playedCards.pop());
-        const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster) {
-            btnSkipCard.style.display = 'none';
-            if (playedCards.length > 0) {
-                document.getElementById('btn-next-card').style.display = 'block';
-            } else {
-                document.getElementById('btn-show-choose-winner').style.display = 'block';
-            }
-         }
-    }
-
-    if (message.method === 'show-next-card') {
-        showSingleCard(playedCards.pop());
-        const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster && playedCards.length == 0) {
-            document.getElementById('btn-next-card').style.display = 'none';
-            document.getElementById('btn-show-choose-winner').style.display = 'block';
-        }
-    }
-
-    if (message.method === 'choosing-winner') {
-        document.getElementById('single-card-frame').innerHTML = '';
-        const isMaster = (sessionStorage.getItem('master') === 'true');
-        if (isMaster) {
-            document.getElementById('btn-show-choose-winner').style.display = 'none';
-            fillMasterCardList(message.playedCards);
+        if (playedCards.length > 0) {
+            btnNextCard.classList.remove('hidden');
         } else {
-            paintMessage('Il master sta scegliendo il vincitore');
+            btnShowChooseWinner.classList.remove('hidden');
         }
     }
+}
 
-    if (message.method === 'watch-score') {
-        sessionStorage.removeItem('hasPlayedCard');
-        window.location.href = '/score';
+function handleShowNextCard(message) {
+    showSingleCard(playedCards.pop());
+    const isMaster = (sessionStorage.getItem('master') === 'true');
+    if (isMaster && playedCards.length == 0) {
+        document.getElementById('btn-next-card').style.display = 'none';
+        btnShowChooseWinner.classList.remove('hidden');
     }
+}
 
-    if (message.method === 'win') {
-        window.location.href = '/final-ranking';
+function handleChoosingWinner(message) {
+    document.getElementById('single-card-frame').innerHTML = '';
+    const isMaster = (sessionStorage.getItem('master') === 'true');
+    if (isMaster) {
+        btnShowChooseWinner.classList.add('hidden');
+        fillMasterCardList(message.playedCards);
+    } else {
+        paintMessage('Il master sta scegliendo il vincitore');
     }
+}
 
-    if (message.method === 'req-black-card-change') {
-        showSkipCardSurvey();
-    }
+function handleWatchScore(message) {
+    sessionStorage.removeItem('hasPlayedCard');
+    navigateTo('/score');
+}
 
-    if (message.method === 'vote-skip-survey') {
-        message.result && sessionStorage.removeItem('hasPlayedCard');
-        skipCardFrame.style.display = 'none';
-        const payLoad = {
-            'method': 'start-manche',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
+function handleWin(message) {
+    navigateTo('/final-ranking');
+}
 
-    if (message.method === 'req-score') {
-        showScores(message.score);
-        const modalElement = document.getElementById('popup-score');
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-    }
+function handleReqBlackCardChange(message) {
+    showSkipCardSurvey();
+}
 
-    if (message.method === 'check-connection') {
-        const payLoad = {
-            'method': 'check-connection',
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
+function handleVoteSkipSurvey(message) {
+    message.result && sessionStorage.removeItem('hasPlayedCard');
+    skipCardFrame.style.display = 'none';
+    const payLoad = {
+        'method': 'start-manche',
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
     }
+    send(payLoad);
+}
 
-    if (message.method === 'invalid-clientId') {
-        window.location.href = '/';
-    }
+function handleReqScore(message) {
+    showScores(message.score);
+    const modalElement = document.getElementById('popup-score');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
 
-    if (message.method === 'server-error') {
-        window.location.href = '/';
-    }
+function handleSkipManche(message) {
+    sessionStorage.removeItem('hasPlayedCard');
+    navigateTo('/score');
+}
 
-    if (message.method === 'connection-trouble') {
-        showPopup('single-disconnection-popup');
-    }
+function handleInvalidClientId(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'player-disconnected') {
-        hidePopup('single-disconnection-popup')
-        showPopup('disconnection-popup');
-    }
+function handleServerError(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'player-disconnection-managed') {
-        hidePopup('disconnection-popup');
-    }
+function handleConnectionTrouble(message) {
+    showPopup('single-disconnection-popup');
+}
 
-    if (message.method === 'connection-trouble-managed') {
-        hidePopup('single-disconnection-popup');
-    }
+function handleConnectionTroubleManaged(message) {
+    hidePopup('single-disconnection-popup');
+}
 
-    if (message.method === 'skip-manche') {
-        sessionStorage.removeItem('hasPlayedCard');
-        location.href = '/score';
-    }
+function handlePlayerDisconnected(message) {
+    hidePopup('single-disconnection-popup');
+    showPopup('disconnection-popup');
+}
+
+function handlePlayerDisconnectedManaged(message) {
+    hidePopup('disconnection-popup');
 }
 
 function requestCardList() {
@@ -231,7 +181,7 @@ function requestCardList() {
         'gameId': sessionStorage.getItem('gameId'),
         'clientId': sessionStorage.getItem('clientId'),
     }
-    webSocket.send(JSON.stringify(payLoad));
+    send(payLoad);
 }
 
 function fillCardList(cardList) {
@@ -254,6 +204,8 @@ function fillCardList(cardList) {
 
     const btnConfirm = createConfirmBtn();
     frame.appendChild(btnConfirm);
+    frame.appendChild(createEmptyCardErrorMessage());
+
 }
 
 
@@ -265,7 +217,7 @@ function createCard(card) {
         internalCardElement = document.createElement('textarea');
         internalCardElement.setAttribute('placeholder', 'Completa la carta');
         internalCardElement.setAttribute('id', 'empty-card-input');
-        internalCardElement.rows = 8;
+        internalCardElement.rows = 10;
         cardDiv.classList.add('empty-card');
     } else {
         internalCardElement = document.createElement('div');
@@ -394,6 +346,7 @@ function showScores(scores) {
 
 function showSkipCardSurvey() {
     document.getElementById('frame').innerHTML = '';
+    console.log(internalSkipCardFrame);
     internalSkipCardFrame.innerHTML = '';
     let p = document.createElement('p');
     p.innerHTML = 'Sei daccordo con la scelta di saltare questa carta?';
@@ -411,7 +364,7 @@ function showSkipCardSurvey() {
             'gameId': sessionStorage.getItem('gameId'),
             'vote': 'yes',
         }
-        webSocket.send(JSON.stringify(payLoad));
+        send(payLoad);
     });
 
     let btnCancel = document.createElement('button');
@@ -424,12 +377,13 @@ function showSkipCardSurvey() {
             'gameId': sessionStorage.getItem('gameId'),
             'vote': 'no',
         }
-        webSocket.send(JSON.stringify(payLoad));
+        send(payLoad);
     });
     btnContainer.appendChild(btnConfirm);
     btnContainer.appendChild(btnCancel);
     internalSkipCardFrame.appendChild(p);
     internalSkipCardFrame.appendChild(btnContainer);
+    console.log('Fine paint skip card survey')
 }
 
 function createConfirmBtn(card, emptyCard = false) {
@@ -438,18 +392,36 @@ function createConfirmBtn(card, emptyCard = false) {
     btn.innerText = 'Conferma';
     btn.addEventListener('click', e => {
         if (selectedCard) {
-            const payLoad = {
-                'method': 'play-card',
-                'clientId': sessionStorage.getItem('clientId'),
-                'gameId': sessionStorage.getItem('gameId'),
-                'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
-                'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
-            };
-            sessionStorage.setItem('hasPlayedCard', true);
-            webSocket.send(JSON.stringify(payLoad));
+            let error = false;
+            if (selectedCard === CardVariants.EMPTY_CARD) {
+                if (!document.getElementById('empty-card-input').value) {
+                    document.getElementById('empty-card-error-message').classList.remove('hidden');
+                    error = true;
+                } 
+            }
+            if (!error) {
+                const payLoad = {
+                    'method': 'play-card',
+                    'clientId': sessionStorage.getItem('clientId'),
+                    'gameId': sessionStorage.getItem('gameId'),
+                    'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                    'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
+                };
+                sessionStorage.setItem('hasPlayedCard', true);
+                send(payLoad);
+            }
         }
     });
     return btn;
+}
+
+function createEmptyCardErrorMessage() {
+    let p = document.createElement('p');
+    p.innerText = "La carta da completare non può essere vuota";
+    p.setAttribute('id', 'empty-card-error-message');
+    p.classList.add('empty-card-error-message', 'hidden');
+    console.log('p aggiunto');
+    return p;
 }
 
 function createChooseWinnermBtn() {
@@ -463,7 +435,7 @@ function createChooseWinnermBtn() {
                 'gameId': sessionStorage.getItem('gameId'),
                 'winner': selectedWinner,
             }
-            webSocket.send(JSON.stringify(payLoad));
+            send(payLoad);
         }
     });
     return btn;
@@ -526,3 +498,109 @@ function showPopup(popupId) {
 function hidePopup(popupId) {
     document.getElementById(popupId).classList.add('hidden');
 }
+
+function createBtnSkipCard() {
+    internalSkipCardFrame.innerHTML = '';
+    btnSkipCard = document.createElement('button');
+    btnSkipCard.classList.add('btn-skip-card', 'new-amsterdam-regular', 'mt-2');
+    btnSkipCard.setAttribute('id', 'btn-skip-card');
+    btnSkipCard.innerText = 'Salta carta';
+    btnSkipCard.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-black-card-change',
+            'gameId': sessionStorage.getItem('gameId'),
+            'clientId': sessionStorage.getItem('clientId'),
+        }
+        send(payLoad);
+    });
+    internalSkipCardFrame.appendChild(btnSkipCard);
+}
+
+function createBtnNextCard() {
+    const container = document.getElementById('single-card-frame');
+    btnNextCard = document.createElement('button');
+    btnNextCard.classList.add('btn-next-card', 'new-amsterdam-regular', 'mt-2', 'hidden');
+    btnNextCard.setAttribute('id', 'btn-next-card');
+    btnNextCard.innerText = 'Prossima carta';
+    btnNextCard.addEventListener('click', () => {
+        console.log('click su nextcard');
+        const payLoad = {
+            'method': 'show-next-card',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    });
+    container.insertAdjacentElement("afterend", btnNextCard);
+}
+
+function createBtnShowChooseWinner() {
+    const container = document.getElementById('single-card-frame');
+    btnShowChooseWinner = document.createElement('button');
+    btnShowChooseWinner.classList.add('btn-show-choose-winner', 'new-amsterdam-regular', 'mt-2', 'hidden');
+    btnShowChooseWinner.setAttribute('id', 'btn-show-choose-winner');
+    btnShowChooseWinner.innerText = 'Vai alla scelta vincitore';
+    btnShowChooseWinner.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'go-to-choosing-winner',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    });
+    container.insertAdjacentElement("afterend", btnShowChooseWinner);
+}
+
+function createShowScoreIcon() {
+    const container = document.getElementById('main-frame');
+    let row = document.createElement('div');
+    row.classList.add('row');
+    let iconContainer = document.createElement('div');
+    iconContainer.classList.add('col-12', 'd-flex', 'justify-content-end');
+    showScoreIcon = document.createElement('i');
+    showScoreIcon.classList.add('bi', 'bi-trophy', 'show-score-icon', 'mb-3');
+    showScoreIcon.setAttribute('id', 'show-score-icon');
+    showScoreIcon.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-score',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    });
+    iconContainer.appendChild(showScoreIcon);
+    row.appendChild(iconContainer);
+    container.insertBefore(row, container.firstChild);
+}
+
+function startScript() {
+    console.log('Start script chiamata')
+    createBtnSkipCard();
+    createBtnNextCard();
+    createBtnShowChooseWinner();
+    createShowScoreIcon();
+    /* showScoreIcon.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'req-score',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    }); */
+    
+    btnPopupScoreClose.addEventListener('click', () => {
+        const modalElement = document.getElementById('popup-score');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+            modal.hide(); // Nasconde la modale correttamente
+        }
+    });
+    addMessageListener(handleMessage);
+    console.log('Preparo start-manche')
+    const payLoad = {
+        'method': 'start-manche',
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
+}
+
+export { startScript };

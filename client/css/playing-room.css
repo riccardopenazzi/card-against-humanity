@@ -142,10 +142,9 @@ textarea {
 }
 
 .show-score-icon {
-    display: block; 
-    margin-left: auto; 
     margin-right: 10px;
     cursor: pointer;
+    font-size: 20px;
 }
 
 .card-sign {
@@ -182,4 +181,8 @@ textarea {
 
 .underline-text {
     text-decoration: underline;
+}
+
+.empty-card-error-message {
+    color: red;
 }
