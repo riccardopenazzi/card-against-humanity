@@ -422,7 +422,7 @@ function handleVoteSkipSurvey(message, connection) {
 }
 /* End functions */
 
-//const periodicallyCheck = setInterval(checkClientsConnected, 4000);
+const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
 async function checkClientsConnected() {
 	const release = await mutex.acquire();

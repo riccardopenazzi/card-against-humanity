@@ -1,3 +1,5 @@
+import { navigateTo } from "./router.js";
+
 let webSocket = null;
 let listeners = [];
 let isReconnecting = false;
@@ -27,7 +29,18 @@ function connect() {
 
 		webSocket.onmessage = (event) => {
 			const message = JSON.parse(event.data);
-			notifyListeners(message);
+			if (message.method === 'invalid-clientId') {
+				navigateTo('/');
+			} else if (message.method === 'check-connection') { 
+				const payLoad = {
+					'method': 'check-connection',
+					'clientId': sessionStorage.getItem('clientId'),
+				}
+				send(payLoad);
+			}
+			else {
+				notifyListeners(message);
+			}
 		};
 
 		webSocket.onclose = () => {

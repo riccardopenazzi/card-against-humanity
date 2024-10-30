@@ -204,6 +204,8 @@ function fillCardList(cardList) {
 
     const btnConfirm = createConfirmBtn();
     frame.appendChild(btnConfirm);
+    frame.appendChild(createEmptyCardErrorMessage());
+
 }
 
 
@@ -215,7 +217,7 @@ function createCard(card) {
         internalCardElement = document.createElement('textarea');
         internalCardElement.setAttribute('placeholder', 'Completa la carta');
         internalCardElement.setAttribute('id', 'empty-card-input');
-        internalCardElement.rows = 8;
+        internalCardElement.rows = 10;
         cardDiv.classList.add('empty-card');
     } else {
         internalCardElement = document.createElement('div');
@@ -390,18 +392,36 @@ function createConfirmBtn(card, emptyCard = false) {
     btn.innerText = 'Conferma';
     btn.addEventListener('click', e => {
         if (selectedCard) {
-            const payLoad = {
-                'method': 'play-card',
-                'clientId': sessionStorage.getItem('clientId'),
-                'gameId': sessionStorage.getItem('gameId'),
-                'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
-                'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
-            };
-            sessionStorage.setItem('hasPlayedCard', true);
-            send(payLoad);
+            let error = false;
+            if (selectedCard === CardVariants.EMPTY_CARD) {
+                if (!document.getElementById('empty-card-input').value) {
+                    document.getElementById('empty-card-error-message').classList.remove('hidden');
+                    error = true;
+                } 
+            }
+            if (!error) {
+                const payLoad = {
+                    'method': 'play-card',
+                    'clientId': sessionStorage.getItem('clientId'),
+                    'gameId': sessionStorage.getItem('gameId'),
+                    'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                    'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
+                };
+                sessionStorage.setItem('hasPlayedCard', true);
+                send(payLoad);
+            }
         }
     });
     return btn;
+}
+
+function createEmptyCardErrorMessage() {
+    let p = document.createElement('p');
+    p.innerText = "La carta da completare non può essere vuota";
+    p.setAttribute('id', 'empty-card-error-message');
+    p.classList.add('empty-card-error-message', 'hidden');
+    console.log('p aggiunto');
+    return p;
 }
 
 function createChooseWinnermBtn() {
