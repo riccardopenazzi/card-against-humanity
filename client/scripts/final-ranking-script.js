@@ -1,76 +1,52 @@
-const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-const webSocketPort = window.location.port;
-let webSocket = new WebSocket(`${protocol}://${window.location.hostname}:${webSocketPort}`);
+import { connect, send, addMessageListener } from './connection-manager.js';
+import { navigateTo } from './router.js';
 
 const debugMode = true;
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btn-exit').addEventListener('click', () => {
-        window.location.href = '/';
-    });
-});
+function handleMessage(message) {
+    debugMode && console.log('Received message: ', message);
 
-webSocket.onopen = () => {
-    const clientId = sessionStorage.getItem('clientId');
-    if (!clientId) {
-       window.location.href = '/';
-    } else {
-        const payLoad = {
-            'method': 'connect-again',
-            'clientId': clientId,
-        }
-        console.log(clientId);
-        console.log(payLoad);
-        webSocket.send(JSON.stringify(payLoad));
+    const messageHandler = {
+        'req-score': handleReqScore,
+        'invalid-clientId': handleInvalidClientId,
+        'server-error': handleServerError,
+        'connection-trouble': handleConnectionTrouble,
+        'connection-trouble-managed': handleConnectionTroubleManaged,
+        'player-disconnected': handlePlayerDisconnected,
+        'player-disconnection-managed': handlePlayerDisconnectedManaged,
     }
+
+    const handler = messageHandler[message.method];
+    handler && handler(message);
 }
 
-webSocket.onmessage = receivedMessage => {
-    const message = JSON.parse(receivedMessage.data);
-    console.log(message);
+function handleReqScore(message) {
+    showFinalRanking(message.score);
+}
 
-    if (message.method === 'reconnected') {
-        const payLoad = {
-            'method': 'req-score',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        console.log('mando req score')
-        webSocket.send(JSON.stringify(payLoad));
-    }
+function handleInvalidClientId(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'req-score') {
-        showFinalRanking(message.score);
-    }
+function handleServerError(message) {
+    navigateTo('/');
+}
 
-    if (message.method === 'check-connection') {
-        const payLoad = {
-            'method': 'check-connection',
-            'clientId': sessionStorage.getItem('clientId'),
-        }
-        webSocket.send(JSON.stringify(payLoad));
-    }
+function handleConnectionTrouble(message) {
+    showPopup('single-disconnection-popup');
+}
 
-    if (message.method === 'invalid-clientId') {
-        window.location.href = '/';
-    }
+function handleConnectionTroubleManaged(message) {
+    hidePopup('single-disconnection-popup');
+}
 
-    if (message.method === 'server-error') {
-        window.location.href = '/';
-    }
+function handlePlayerDisconnected(message) {
+    hidePopup('single-disconnection-popup');
+    showPopup('disconnection-popup');
+}
 
-    if (message.method === 'connection-trouble') {
-        showPopup('single-disconnection-popup');
-    }
-
-    if (message.method === 'player-disconnected') {
-        hidePopup('single-disconnection-popup')
-        showPopup('disconnection-popup');
-    }
-
-    if (message.method === 'player-disconnection-managed') {
-        hidePopup('disconnection-popup');
-    }
+function handlePlayerDisconnectedManaged(message) {
+    hidePopup('disconnection-popup');
 }
 
 function showFinalRanking(scores) {
@@ -115,3 +91,27 @@ function showFinalRanking(scores) {
         }, delay * 1000);
     });
 }
+
+function createBtnExit() {
+    let btnExit = document.createElement('button');
+    btnExit.classList.add('btn-exit', 'new-amsterdam-regular');
+    btnExit.setAttribute('id', 'btn-exit');
+    btnExit.innerText = 'Esci';
+    btnExit.addEventListener('click', () => {
+        window.location.href = '/';
+    });
+    document.getElementById('btn-exit-container').appendChild(btnExit);
+}
+
+function startScript() {
+    addMessageListener(handleMessage);
+    createBtnExit();
+    const payLoad = {
+        'method': 'req-score',
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
+}
+
+export { startScript };

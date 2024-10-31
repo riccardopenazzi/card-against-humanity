@@ -8,6 +8,7 @@
 @import url('waiting-room.css');
 @import url('playing-room.css');
 @import url('score.css');
+@import url('final-ranking.css');
 
 body {
 	background-color: #2A2A2A;
