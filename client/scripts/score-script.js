@@ -28,6 +28,7 @@ function handleReqScore(message) {
 
 function handleNewManche(message) {
     sessionStorage.removeItem('hasVoted');
+    sessionStorage.removeItem('hasRequestedSkip');
     navigateTo('/playing-room');
 }
 
@@ -40,6 +41,7 @@ function handleInvalidClientId(message) {
 }
 
 function handleServerError(message) {
+    sessionStorage.clear();
     navigateTo('/');
 }
 
