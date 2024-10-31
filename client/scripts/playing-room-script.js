@@ -60,9 +60,12 @@ function handleStartManche(message) {
             paintMessage('Aspetta che i giocatori scelgano la propria carta');
         }
     } else {
+        internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
+        internalSkipCardFrame.innerHTML = '';
+        console.log('nascoto')
         if (sessionStorage.getItem('hasPlayedCard')) {
             paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
-            btnSkipCard.style.display = 'none';
+            /* document.getElementById('btn-skip-card').classList.add */
         } else {
             requestCardList();
         }
@@ -504,6 +507,7 @@ function hidePopup(popupId) {
 }
 
 function createBtnSkipCard() {
+    console.log(sessionStorage.getItem('master') === 'false')
     if (sessionStorage.getItem('hasRequestedSkip')) {
         return;
     }
