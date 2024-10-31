@@ -52,7 +52,7 @@ export function paintPlayingRoom() {
                   <div class="modal-content">
                     <div class="modal-header">
                           <h5 class="modal-title text-dark">Classifica</h5>
-                          <button type="button" id="btn-popup-score-close" class="btn-close" aria-label="Close"></button>
+                          <button type="button" id="btn-popup-score-close" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body" id="popup-score-body">
                     </div>
