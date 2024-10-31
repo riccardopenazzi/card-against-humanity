@@ -70,6 +70,7 @@ function handleInvalidClientId() {
 }
 
 function handleServerError() {
+    sessionStorage.clear();
     navigateTo('/');
 }
 

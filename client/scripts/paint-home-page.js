@@ -35,6 +35,13 @@ export function paintHomePage() {
 				</div>
 				<div class="col-2 col-lg-4"></div>
 			</div>
+			<div id="info-popup" class="popup hidden">
+                <div class="popup-content">
+                    <div id="popup-title">!DISCLAIMER!</div>
+                    <div id="popup-info-paragraph">Il gioco è ancora in beta, potrebbe avere ancora qualche bug, evita di ricaricare la pagina, soprattutto nella waiting-room, e ricorda di non chiudere il browser, altrimenti potresti essere disconnesso</div>
+                    
+                </div>
+            </div>
 		</div>
 		`;
 		appDiv.innerHTML = homePageContent;

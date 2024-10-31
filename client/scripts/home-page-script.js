@@ -38,7 +38,8 @@ function handleConnect(message) {
 function handleVerifyGameCode(message) {
     if (message.result === 'valid') {
         sessionStorage.setItem('gameId', message.gameCode);
-		navigateTo('/waiting-room');
+        document.getElementById('info-popup').classList.remove('hidden');
+		/* navigateTo('/waiting-room'); */
     } else {
         showError('Si è verificato un errore, il codice potrebbe non essere di 6 caratteri, contenere spazi o essere errato');
     }
@@ -54,6 +55,7 @@ function handleInvalidClientId() {
 }
 
 function handleServerError() {
+    sessionStorage.clear();
     navigateTo('/');
 }
 
@@ -109,10 +111,21 @@ function createBtnJoinGame() {
     document.getElementById('btn-join-container').appendChild(btnJoin);
 }
 
+function createBtnPopupInfo() {
+    let btn = document.createElement('button');
+    btn.classList.add('new-amsterdam-regular', 'btn-accept-info');
+    btn.innerText = 'Accetto';
+    btn.addEventListener('click', () => {
+        navigateTo('/waiting-room');
+    });
+    document.getElementById('popup-info-paragraph').insertAdjacentElement('afterend', btn);
+}
+
 function executeStartScript() {
     createBtnCreateGame();
     createInputGameCode();
     createBtnJoinGame();
+    createBtnPopupInfo();
 }
 
 export { executeConnect };

@@ -29,6 +29,7 @@ function handleInvalidClientId(message) {
 }
 
 function handleServerError(message) {
+    sessionStorage.clear();
     navigateTo('/');
 }
 
@@ -98,6 +99,7 @@ function createBtnExit() {
     btnExit.setAttribute('id', 'btn-exit');
     btnExit.innerText = 'Esci';
     btnExit.addEventListener('click', () => {
+        sessionStorage.clear();
         window.location.href = '/';
     });
     document.getElementById('btn-exit-container').appendChild(btnExit);
