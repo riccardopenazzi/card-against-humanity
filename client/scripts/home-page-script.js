@@ -1,9 +1,9 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
 import { navigateTo } from './router.js';
 
-const inputCode = document.getElementById('txt-game-code');
-const btnJoin = document.getElementById('btn-join-game');
-const btnCreate = document.getElementById('btn-create-game');
+let inputCode;
+let btnJoin;
+let btnCreate;
 const debugMode = true;
 
 function handleMessage(message) {
@@ -62,27 +62,57 @@ function showError(message) {
     errorElement.innerText = message;
 }
 
-function startScript() {
-    btnCreate.addEventListener('click', () => {
-        navigateTo('/settings');
-    });
-    
-    btnJoin.addEventListener('click', () => {
-        send({method: 'connect'});
-    });
-    
-    inputCode.addEventListener('input', () => {
-        btnJoin.disabled = inputCode.value.trim().length !== 6;
-    });
-    
+function executeConnect() {
     connect()
         .then(() => {
             debugMode && console.log('Connected to WebSocket server.');
             addMessageListener(handleMessage);
+            executeStartScript();
         })
         .catch((error) => {
             alert("Connessione WebSocket non disponibile, potrebbero esserci problemi dovuti alla rete. Ricarica la pagina e riprova.");
         });
 }
 
-export { startScript };
+function createBtnCreateGame() {
+    btnCreate = document.createElement('button');
+    btnCreate.setAttribute('id', 'btn-create-game');
+    btnCreate.classList.add('btn-create-game', 'w-100', 'new-amsterdam-regular');
+    btnCreate.innerText = "Crea una stanza";
+    btnCreate.addEventListener('click', () => {
+        navigateTo('/settings');
+    });
+    document.getElementById('btn-create-container').appendChild(btnCreate);
+}
+
+function createInputGameCode() {
+    inputCode = document.createElement('input');
+    inputCode.setAttribute('id', 'txt-game-code');
+    inputCode.setAttribute('placeholder', 'Codice stanza');
+    inputCode.setAttribute('type', 'text');
+    inputCode.classList.add('form-control', 'w-100', 'mx-auto', 'mt-2');
+    inputCode.addEventListener('input', () => {
+        btnJoin.disabled = inputCode.value.trim().length !== 6;
+    });
+    document.getElementById('input-game-code-container').appendChild(inputCode);
+}
+
+function createBtnJoinGame() {
+    btnJoin = document.createElement('button');
+    btnJoin.setAttribute('id', 'btn-join-game');
+    btnJoin.setAttribute('disabled', 'true');
+    btnJoin.classList.add('btn-join-game', 'w-100', 'new-amsterdam-regular');
+    btnJoin.innerText = "Entra in una stanza";
+    btnJoin.addEventListener('click', () => {
+        send({method: 'connect'});
+    });
+    document.getElementById('btn-join-container').appendChild(btnJoin);
+}
+
+function executeStartScript() {
+    createBtnCreateGame();
+    createInputGameCode();
+    createBtnJoinGame();
+}
+
+export { executeConnect };

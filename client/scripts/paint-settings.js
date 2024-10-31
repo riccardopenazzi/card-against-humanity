@@ -11,22 +11,22 @@ export function paintSettingsPage() {
             <div class="row text-center">
             <h1 class="new-amsterdam-regular text-center mt-3 mb-5">Impostazioni partita</h1>
             <div class="col-12">
-                <p class="new-amsterdam-regular">Carte per ogni giocatore</p>
-                <input type="range" class="form-range px-3" min="4" max="12" id="player-cards-range">
+                <p class="new-amsterdam-regular" id="p-cards-number">Carte per ogni giocatore</p>
+                
                 <span id="player-cards-value"></span>
                 <p>Min: 4 | Max: 12</p>
     
-                <p class="new-amsterdam-regular">Vittorie necessarie per terminare la partita</p>
-                <input type="range" class="form-range px-3" min="3" max="20" id="win-number-range">
+                <p class="new-amsterdam-regular" id="p-win-number">Vittorie necessarie per terminare la partita</p>
+                
                 <span id="win-number-value"></span>
-                <p>Min: 3 | Max: 20</p>
+                <p>Min: 2 | Max: 20</p>
     
                 <input type="checkbox" id="white-card-mode" class="mt-4">
                 <label for="white-card-mode">Modalità carta bianca</label>
                 <i class="bi bi-question-circle ms-2" data-bs-toggle="tooltip" data-bs-placement="right" title="La modalità carta bianca consente ai giocatori di avere una carta senza testo personalizzabile da utilizzare una sola volta nella partita."></i>
     
-                <div class="mt-5">
-                    <button id="btn-confirm-settings" class="btn-confirm-settings new-amsterdam-regular">Conferma impostazioni</button>
+                <div class="mt-5" id="btn-confirm-settings-container">
+                    
                 </div>
     
             </div>
