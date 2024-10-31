@@ -42,7 +42,8 @@ function handleConnect(message) {
 function handleCreate(message) {
     sessionStorage.setItem('gameId', message.gameId);
     sessionStorage.setItem('hostId', sessionStorage.getItem('clientId'));
-    navigateTo('/waiting-room');
+    /* navigateTo('/waiting-room'); */
+    document.getElementById('info-popup').classList.remove('hidden');
 }
 
 function handleInvalidClientId() {
@@ -50,6 +51,7 @@ function handleInvalidClientId() {
 }
 
 function handleServerError() {
+    sessionStorage.clear();
     navigateTo('/');
 }
 
@@ -92,6 +94,16 @@ function createBtnConfirmSettings() {
     document.getElementById('btn-confirm-settings-container').appendChild(btnConfirmSettings);
 }
 
+function createBtnPopupInfo() {
+    let btn = document.createElement('button');
+    btn.classList.add('new-amsterdam-regular', 'btn-accept-info');
+    btn.innerText = 'Accetto';
+    btn.addEventListener('click', () => {
+        navigateTo('/waiting-room');
+    });
+    document.getElementById('popup-info-paragraph').insertAdjacentElement('afterend', btn);
+}
+
 function startScript() {
     addMessageListener(handleMessage);
     createCardInput();
@@ -99,6 +111,7 @@ function startScript() {
     createBtnConfirmSettings();
     cardsValueIndicator.innerText = cardsInput.value;
     winsValueIndicator.innerText = winsInput.value;
+    createBtnPopupInfo();
 }
 
 export { startScript };

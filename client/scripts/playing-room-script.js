@@ -129,7 +129,9 @@ function handleReqBlackCardChange(message) {
 
 function handleVoteSkipSurvey(message) {
     message.result && sessionStorage.removeItem('hasPlayedCard');
+    skipCardFrame = document.getElementById('skip-card-frame');
     skipCardFrame.style.display = 'none';
+    /* skipCardFrame.innerHTML = ''; */
     const payLoad = {
         'method': 'start-manche',
         'clientId': sessionStorage.getItem('clientId'),
@@ -155,6 +157,7 @@ function handleInvalidClientId(message) {
 }
 
 function handleServerError(message) {
+    sessionStorage.clear();
     navigateTo('/');
 }
 
@@ -345,6 +348,7 @@ function showScores(scores) {
 }
 
 function showSkipCardSurvey() {
+    sessionStorage.setItem('hasRequestedSkip', true)
     document.getElementById('frame').innerHTML = '';
     console.log(internalSkipCardFrame);
     internalSkipCardFrame.innerHTML = '';
@@ -500,6 +504,11 @@ function hidePopup(popupId) {
 }
 
 function createBtnSkipCard() {
+    if (sessionStorage.getItem('hasRequestedSkip')) {
+        return;
+    }
+    console.log(internalSkipCardFrame)
+    internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
     internalSkipCardFrame.innerHTML = '';
     btnSkipCard = document.createElement('button');
     btnSkipCard.classList.add('btn-skip-card', 'new-amsterdam-regular', 'mt-2');
@@ -514,6 +523,7 @@ function createBtnSkipCard() {
         send(payLoad);
     });
     internalSkipCardFrame.appendChild(btnSkipCard);
+    console.log(document.getElementById('btn-skip-card'))
 }
 
 function createBtnNextCard() {
@@ -569,6 +579,8 @@ function createShowScoreIcon() {
     iconContainer.appendChild(showScoreIcon);
     row.appendChild(iconContainer);
     container.insertBefore(row, container.firstChild);
+    console.log(document.getElementById('btn-skip-card'))
+
 }
 
 function startScript() {
@@ -577,14 +589,6 @@ function startScript() {
     createBtnNextCard();
     createBtnShowChooseWinner();
     createShowScoreIcon();
-    /* showScoreIcon.addEventListener('click', () => {
-        const payLoad = {
-            'method': 'req-score',
-            'clientId': sessionStorage.getItem('clientId'),
-            'gameId': sessionStorage.getItem('gameId'),
-        }
-        send(payLoad);
-    }); */
     
     btnPopupScoreClose.addEventListener('click', () => {
         const modalElement = document.getElementById('popup-score');
