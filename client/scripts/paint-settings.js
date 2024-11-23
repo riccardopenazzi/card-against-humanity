@@ -41,6 +41,10 @@ export function paintSettingsPage() {
         `;
         appDiv.innerHTML = settingsPageContent;
 
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((tooltipTriggerEl) => {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
 		resolve();
 	});
 }

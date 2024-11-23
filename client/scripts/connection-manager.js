@@ -7,6 +7,12 @@ let isReconnecting = false;
 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 const webSocketPort = window.location.port;
 
+const commonHandlers = {
+	'invalid-clientId': handleInvalidClientId,
+	'server-error': handleServerError,
+	'check-connection': handleChecKConnection,
+}
+
 function connect() {
 	return new Promise((resolve, reject) => {
 		if (webSocket) {
@@ -29,16 +35,10 @@ function connect() {
 
 		webSocket.onmessage = (event) => {
 			const message = JSON.parse(event.data);
-			if (message.method === 'invalid-clientId') {
-				navigateTo('/');
-			} else if (message.method === 'check-connection') { 
-				const payLoad = {
-					'method': 'check-connection',
-					'clientId': sessionStorage.getItem('clientId'),
-				}
-				send(payLoad);
-			}
-			else {
+			if (commonHandlers.hasOwnProperty(message.method)) {
+				const handler = commonHandlers[message.method];
+				handler && handler(message);
+			} else {
 				notifyListeners(message);
 			}
 		};
@@ -95,6 +95,23 @@ function notifyListeners(message) {
 
 function clearMessageListeners() {
 	listeners = [];
+}
+
+function handleInvalidClientId() {
+	navigateTo('/');
+}
+
+function handleServerError() {
+	sessionStorage.clear();
+	navigateTo('/');
+}
+
+function handleChecKConnection() {
+	const payLoad = {
+		'method': 'check-connection',
+		'clientId': sessionStorage.getItem('clientId'),
+	}
+	send(payLoad);
 }
 
 export { connect, send, addMessageListener, clearMessageListeners };
