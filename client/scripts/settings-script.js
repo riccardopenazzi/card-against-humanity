@@ -42,6 +42,7 @@ function handleConnect(message) {
 function handleCreate(message) {
     sessionStorage.setItem('gameId', message.gameId);
     sessionStorage.setItem('hostId', sessionStorage.getItem('clientId'));
+    sessionStorage.setItem('reloadRequired', true);
     /* navigateTo('/waiting-room'); */
     document.getElementById('info-popup').classList.remove('hidden');
 }

@@ -116,6 +116,7 @@ function createBtnPopupInfo() {
     btn.classList.add('new-amsterdam-regular', 'btn-accept-info');
     btn.innerText = 'Accetto';
     btn.addEventListener('click', () => {
+        sessionStorage.setItem('reloadRequired', true);
         navigateTo('/waiting-room');
     });
     document.getElementById('popup-info-paragraph').insertAdjacentElement('afterend', btn);
