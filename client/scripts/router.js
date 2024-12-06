@@ -20,6 +20,8 @@ function onPageVisit(pageName) {
         sessionStorage.removeItem('reloadRequired');
         sessionStorage.removeItem('master');
         sessionStorage.removeItem('hostId');
+        sessionStorage.removeItem('hasPlayedCard');
+        sessionStorage.removeItem('hasRequestedSkip');
         location.reload();
     }
 }

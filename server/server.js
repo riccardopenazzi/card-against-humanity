@@ -61,6 +61,7 @@ const eventManager = {
     [MessageTypes.CHECK_CONNECTION]: handleCheckConnection,
     [MessageTypes.REQ_BLACK_CARD_CHANGE]: handleRequestBlackCardChange,
     [MessageTypes.VOTE_SKIP_SURVEY]: handleVoteSkipSurvey,
+	[MessageTypes.EXEC_POINT_COUNT]: handleExecPointCount,
 };
 
 wsServer.on("request", request => {
@@ -311,18 +312,34 @@ function handleChoosingWinner(message, connection) {
 	let winner = message.winner;
 	games[gameId].players[winner].addPoint();
 	games[gameId].setMancheWinner(winner);
-	if (games[gameId].checkGameEnd()) {
-		//someone has won
-		const payLoad = {
-			'method': 'win',
-			'winner': games[gameId].players[winner].username,
-		}
-		sendBroadcastMessage(gameId, payLoad, connection);
-	} else {
-		//nobody has won
-		const payLoad = {
-			'method': 'watch-score',
-			'winner': games[gameId].players[winner].username,
+	games[gameId].resetReadyPlayers();
+	const payLoad = {
+		'method': 'show-winning-card',
+		'cardText': games[gameId].currentManche.playedWhiteCards[winner],
+		'mancheWinner': games[gameId].players[winner].username,
+	}
+	sendBroadcastMessage(gameId, payLoad, connection);
+}
+
+function handleExecPointCount(message, connection) {
+	let gameId = message.gameId;
+	let winner = games[gameId].currentManche.winner;
+	games[gameId].incReadyPlayers();
+	let payLoad;
+	if (games[gameId].checkAllPlayersReady()) {
+		games[gameId].resetReadyPlayers();
+		if (games[gameId].checkGameEnd()) {
+			//someone has won
+			payLoad = {
+				'method': 'win',
+				'winner': games[gameId].players[winner].username,
+			}
+		} else {
+			//nobody has won
+			payLoad = {
+				'method': 'watch-score',
+				'winner': games[gameId].players[winner].username,
+			}
 		}
 		sendBroadcastMessage(gameId, payLoad, connection);
 	}
@@ -426,7 +443,7 @@ async function checkClientsConnected() {
 			debugMode && console.log('controllo checking è false');
 			checking = true;
 			Object.keys(connectedClients).forEach(clientId => {
-				debugMode && console.log(clientId);
+				//debugMode && console.log(clientId);
 				const gameId = getGameIdFromPlayer(clientId);
 				if (connectedClients[clientId].alive) {
 					connectedClients[clientId].alive = false;

@@ -23,6 +23,7 @@ function handleMessage(message) {
 }
 
 function handleReqScore(message) {
+    sessionStorage.removeItem('hasConfirmed');
     showScores(message.score, message.readyPlayers);
 }
 
