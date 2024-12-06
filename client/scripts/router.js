@@ -7,12 +7,12 @@ import { paintScore } from "./paint-score.js";
 import { paintFinalRanking } from "./paint-final-ranking.js";
 
 const routes = {
-    '/': { paint: paintHomePage, script: './home-page-script.js', name: 'index' },
-    '/settings': { paint: paintSettingsPage, script: './settings-script.js', name: 'settings' },
-    '/waiting-room': { paint: paintWaitingRoom, script: './waiting-room-script.js', name: 'waiting-room' },
-    '/playing-room': { paint: paintPlayingRoom, script: './playing-room-script.js', name: 'playing-room' },
-    '/score': { paint: paintScore, script: './score-script.js', name: 'score' },
-    '/final-ranking': { paint: paintFinalRanking, script: './final-ranking-script.js', name: 'final-ranking' },
+    '': { paint: paintHomePage, script: './home-page-script.js', name: 'index' },
+    'settings': { paint: paintSettingsPage, script: './settings-script.js', name: 'settings' },
+    'waiting-room': { paint: paintWaitingRoom, script: './waiting-room-script.js', name: 'waiting-room' },
+    'playing-room': { paint: paintPlayingRoom, script: './playing-room-script.js', name: 'playing-room' },
+    'score': { paint: paintScore, script: './score-script.js', name: 'score' },
+    'final-ranking': { paint: paintFinalRanking, script: './final-ranking-script.js', name: 'final-ranking' },
 };
 
 function onPageVisit(pageName) {
@@ -20,13 +20,15 @@ function onPageVisit(pageName) {
         sessionStorage.removeItem('reloadRequired');
         sessionStorage.removeItem('master');
         sessionStorage.removeItem('hostId');
+        sessionStorage.removeItem('hasPlayedCard');
+        sessionStorage.removeItem('hasRequestedSkip');
         location.reload();
     }
 }
 
 async function handleRouteChange() {
     clearMessageListeners();
-    const path = window.location.hash.slice(1) || '/';
+    const path = window.location.hash.slice(1) || '';
     const route = routes[path];
 
     if (route) {

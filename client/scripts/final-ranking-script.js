@@ -25,12 +25,12 @@ function handleReqScore(message) {
 }
 
 function handleInvalidClientId(message) {
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleServerError(message) {
     sessionStorage.clear();
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleConnectionTrouble(message) {

@@ -62,16 +62,16 @@ function handleDuplicateUsername() {
 }
 
 function handleStartGame() {
-    navigateTo('/playing-room');
+    navigateTo('playing-room');
 }
 
 function handleInvalidClientId() {
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleServerError() {
     sessionStorage.clear();
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleConnectionTrouble() {

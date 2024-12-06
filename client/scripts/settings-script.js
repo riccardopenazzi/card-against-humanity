@@ -43,17 +43,17 @@ function handleCreate(message) {
     sessionStorage.setItem('gameId', message.gameId);
     sessionStorage.setItem('hostId', sessionStorage.getItem('clientId'));
     sessionStorage.setItem('reloadRequired', true);
-    /* navigateTo('/waiting-room'); */
+    /* navigateTo('waiting-room'); */
     document.getElementById('info-popup').classList.remove('hidden');
 }
 
 function handleInvalidClientId() {
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleServerError() {
     sessionStorage.clear();
-    navigateTo('/');
+    navigateTo('');
 }
 
 function createCardInput() {
@@ -100,7 +100,7 @@ function createBtnPopupInfo() {
     btn.classList.add('new-amsterdam-regular', 'btn-accept-info');
     btn.innerText = 'Accetto';
     btn.addEventListener('click', () => {
-        navigateTo('/waiting-room');
+        navigateTo('waiting-room');
     });
     document.getElementById('popup-info-paragraph').insertAdjacentElement('afterend', btn);
 }

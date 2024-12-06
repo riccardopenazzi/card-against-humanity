@@ -39,7 +39,7 @@ function handleVerifyGameCode(message) {
     if (message.result === 'valid') {
         sessionStorage.setItem('gameId', message.gameCode);
         document.getElementById('info-popup').classList.remove('hidden');
-		/* navigateTo('/waiting-room'); */
+		/* navigateTo('waiting-room'); */
     } else {
         showError('Si è verificato un errore, il codice potrebbe non essere di 6 caratteri, contenere spazi o essere errato');
     }
@@ -47,16 +47,16 @@ function handleVerifyGameCode(message) {
 
 function handleGameAlreadyStarted() {
     alert('Non puoi unirti ad una partita già iniziata');
-   	navigateTo('/');
+   	navigateTo('');
 }
 
 function handleInvalidClientId() {
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleServerError() {
     sessionStorage.clear();
-    navigateTo('/');
+    navigateTo('');
 }
 
 function showError(message) {
@@ -82,7 +82,7 @@ function createBtnCreateGame() {
     btnCreate.classList.add('btn-create-game', 'w-100', 'new-amsterdam-regular');
     btnCreate.innerText = "Crea una stanza";
     btnCreate.addEventListener('click', () => {
-        navigateTo('/settings');
+        navigateTo('settings');
     });
     document.getElementById('btn-create-container').appendChild(btnCreate);
 }
@@ -117,7 +117,7 @@ function createBtnPopupInfo() {
     btn.innerText = 'Accetto';
     btn.addEventListener('click', () => {
         sessionStorage.setItem('reloadRequired', true);
-        navigateTo('/waiting-room');
+        navigateTo('waiting-room');
     });
     document.getElementById('popup-info-paragraph').insertAdjacentElement('afterend', btn);
 }

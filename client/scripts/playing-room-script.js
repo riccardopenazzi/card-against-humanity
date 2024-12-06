@@ -7,6 +7,7 @@ const debugMode = true;
 let btnNextCard;
 let btnShowChooseWinner;
 let btnSkipCard;
+let btnConfirmWinner;
 let skipCardFrame = document.getElementById('skip-card-frame');
 let internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
 let standardFrame = document.getElementById('standard-frame');
@@ -28,6 +29,7 @@ function handleMessage(message) {
         'show-played-cards': handleShowPlayedCards,
         'show-next-card': handleShowNextCard,
         'choosing-winner': handleChoosingWinner,
+        'show-winning-card': handleShowWinningCard,
         'watch-score': handleWatchScore,
         'win': handleWin,
         'req-black-card-change': handleReqBlackCardChange,
@@ -47,6 +49,7 @@ function handleMessage(message) {
 }
 
 function handleStartManche(message) {
+    sessionStorage.removeItem('hasVoted');
     document.getElementById('title').innerHTML = '';
     document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
     document.getElementById('black-card').innerText = message.blackCard;
@@ -117,13 +120,20 @@ function handleChoosingWinner(message) {
     }
 }
 
+function handleShowWinningCard(message) {
+    document.getElementById('frame').innerHTML = '';
+    paintMessage(`Vincitore manche: ${message.mancheWinner}`);
+    showSingleCard(message.cardText);
+    btnConfirmWinner.classList.remove('hidden');
+}
+
 function handleWatchScore(message) {
     sessionStorage.removeItem('hasPlayedCard');
-    navigateTo('/score');
+    navigateTo('score');
 }
 
 function handleWin(message) {
-    navigateTo('/final-ranking');
+    navigateTo('final-ranking');
 }
 
 function handleReqBlackCardChange(message) {
@@ -152,16 +162,16 @@ function handleReqScore(message) {
 
 function handleSkipManche(message) {
     sessionStorage.removeItem('hasPlayedCard');
-    navigateTo('/score');
+    navigateTo('score');
 }
 
 function handleInvalidClientId(message) {
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleServerError(message) {
     sessionStorage.clear();
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleConnectionTrouble(message) {
@@ -563,6 +573,24 @@ function createBtnShowChooseWinner() {
     container.insertAdjacentElement("afterend", btnShowChooseWinner);
 }
 
+function createBtnConfirmWinner() {
+    const container = document.getElementById('single-card-frame');
+    btnConfirmWinner = document.createElement('button');
+    btnConfirmWinner.classList.add('btn-show-choose-winner', 'new-amsterdam-regular', 'mt-2', 'hidden');
+    btnConfirmWinner.setAttribute('id', 'btn-confirm-winner');
+    btnConfirmWinner.innerText = 'Conferma';
+    btnConfirmWinner.addEventListener('click', () => {
+        const payLoad = {
+            'method': 'exec-point-count',
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        btnConfirmWinner.setAttribute('disabled', 'true');
+        sessionStorage.setItem('hasConfirmed', true);
+        send(payLoad);
+    });
+    container.insertAdjacentElement("afterend", btnConfirmWinner);
+}
+
 function createShowScoreIcon() {
     const container = document.getElementById('main-frame');
     let row = document.createElement('div');
@@ -584,7 +612,6 @@ function createShowScoreIcon() {
     row.appendChild(iconContainer);
     container.insertBefore(row, container.firstChild);
     console.log(document.getElementById('btn-skip-card'))
-
 }
 
 function startScript() {
@@ -592,6 +619,7 @@ function startScript() {
     createBtnSkipCard();
     createBtnNextCard();
     createBtnShowChooseWinner();
+    createBtnConfirmWinner();
     createShowScoreIcon();
     
     btnPopupScoreClose.addEventListener('click', () => {

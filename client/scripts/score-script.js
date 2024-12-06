@@ -23,13 +23,14 @@ function handleMessage(message) {
 }
 
 function handleReqScore(message) {
+    sessionStorage.removeItem('hasConfirmed');
     showScores(message.score, message.readyPlayers);
 }
 
 function handleNewManche(message) {
     sessionStorage.removeItem('hasVoted');
     sessionStorage.removeItem('hasRequestedSkip');
-    navigateTo('/playing-room');
+    navigateTo('playing-room');
 }
 
 function handleCounterReadyPlayers(message) {
@@ -37,12 +38,12 @@ function handleCounterReadyPlayers(message) {
 }
 
 function handleInvalidClientId(message) {
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleServerError(message) {
     sessionStorage.clear();
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleConnectionTrouble(message) {

@@ -21,6 +21,7 @@ const MessageTypes = Object.freeze({
 	SKIP_MANCHE: 'skip-manche',
 	CONNECTION_TROUBLE: 'connection-trouble',
 	CONNECTION_TROUBLE_MANAGED: 'connection-trouble-managed',
+	EXEC_POINT_COUNT: 'exec-point-count',
 });
 
 const CardVariants = Object.freeze({
