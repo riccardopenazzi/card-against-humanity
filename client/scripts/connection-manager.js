@@ -98,12 +98,12 @@ function clearMessageListeners() {
 }
 
 function handleInvalidClientId() {
-	navigateTo('/');
+	navigateTo('');
 }
 
 function handleServerError() {
 	sessionStorage.clear();
-	navigateTo('/');
+	navigateTo('');
 }
 
 function handleChecKConnection() {

@@ -119,11 +119,11 @@ function handleChoosingWinner(message) {
 
 function handleWatchScore(message) {
     sessionStorage.removeItem('hasPlayedCard');
-    navigateTo('/score');
+    navigateTo('score');
 }
 
 function handleWin(message) {
-    navigateTo('/final-ranking');
+    navigateTo('final-ranking');
 }
 
 function handleReqBlackCardChange(message) {
@@ -152,16 +152,16 @@ function handleReqScore(message) {
 
 function handleSkipManche(message) {
     sessionStorage.removeItem('hasPlayedCard');
-    navigateTo('/score');
+    navigateTo('score');
 }
 
 function handleInvalidClientId(message) {
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleServerError(message) {
     sessionStorage.clear();
-    navigateTo('/');
+    navigateTo('');
 }
 
 function handleConnectionTrouble(message) {

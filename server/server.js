@@ -22,11 +22,6 @@ let checking = false;
 app.use('/shared', express.static(path.join(__dirname, '../shared')));
 app.use(express.static(path.join(__dirname, "../client")));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/index.html")));
-/* app.get("/settings", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/settings.html")));
-app.get("/waiting-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/waiting-room.html")));
-app.get("/playing-room", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/playing-room.html")));
-app.get("/score", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/score.html")));
-app.get("/final-ranking", (req, res) => res.sendFile(path.join(__dirname, "../client/screens/final-ranking.html"))); */
 
 // Start server
 server.listen(serverPort, () => console.log(`Server listening on port ${serverPort}`));
