@@ -17,8 +17,8 @@ export function paintWaitingRoom() {
                 <div class="col-2 col-lg-4"></div>
                 <div class="col-8 col-lg-4 mt-5">
                     <form>
-                        <label for="txt-username" class="form-label" hidden>Username</label>
-                        <input type="text" class="form-control w-100 mx-auto" id="txt-username" placeholder="Username">
+                        <label for="txt-username" class="form-label text-start d-block fst-italic">Username: </label>
+                        <input type="text" class="form-control w-100 mx-auto" id="txt-username" placeholder="Es: Peffò">
                         <button class="new-amsterdam-regular btn-confirm-username w-100 mt-2" id="btn-confirm-username" disabled>Conferma</button>
                     </form>
                 </div>

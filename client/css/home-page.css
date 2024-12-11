@@ -8,9 +8,12 @@
     text-transform: uppercase;
 }
 
-
 .btn-accept-info {
     padding: 10px;
     border-radius: 8px;
     margin-top: 10px;
+}
+
+.label-game-code {
+    text-align: left;
 }
