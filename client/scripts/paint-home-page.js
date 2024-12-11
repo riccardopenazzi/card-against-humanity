@@ -19,13 +19,13 @@ export function paintHomePage() {
 	
 				<div class="col-2 col-lg-4"></div>
 				<div class="col-8 col-lg-4 mt-5 text-center" id="input-game-code-container">
-				
+					<div class="label-game-code">Inserisci il codice della stanza</div>
 				</div>
 				<div class="col-2 col-lg-4"></div>
 	
 				<div class="col-2 col-lg-4"></div>
 				<div class="col-8 col-lg-4 mt-2" id="btn-join-container">
-					
+
 				</div>
 				<div class="col-2 col-lg-4"></div>
 	

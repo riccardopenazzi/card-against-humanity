@@ -23,6 +23,7 @@ function handleMessage(message) {
         'connection-trouble-managed': handleConnectionTroubleManaged,
         'player-disconnected': handlePlayerDisconnected,
         'player-disconnection-managed': handlePlayerDisconnectedManaged,
+        'connect': handleConnect,
     }
 
     const handler = messageHandler[message.method];
@@ -91,12 +92,29 @@ function handlePlayerDisconnectedManaged() {
     hidePopup('disconnection-popup');
 }
 
+function handleConnect(message) {
+    const clientId = message.clientId;
+    sessionStorage.setItem('clientId', clientId);
+}
+
 function createDivGameCode(target) {    
     const pCode = document.createElement('p');
     pCode.classList.add('col-12', 'fst-italic');
     pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId') + '\nCondividilo con i tuoi amici per farli entrare';
     target.insertAdjacentElement('afterend', pCode);
-
+    const buttonCopyText = document.createElement('p');
+    buttonCopyText.innerText = 'Copia codice partita';
+    buttonCopyText.classList.add('text-decoration-underline', 'text-info');
+    buttonCopyText.addEventListener('click', () => {
+        navigator.clipboard.writeText(`${window.location.href}?gameCode=${sessionStorage.getItem('gameId')}`)
+        .then(() => {
+            alert('Codice copiato!');
+        })
+        .catch((err) => {
+            alert('Errore durante la copia del testo!');
+        });
+    });
+    pCode.appendChild(buttonCopyText);
 }
 
 function createDivBtnStart() {
@@ -128,7 +146,11 @@ function inputEventAction() {
         btnConfirmUsername.disabled = true;
 }
 
-function startScript() {
+function createComponents() {
+    
+}
+
+async function startScript(gameCode = -1) {
     btnConfirmUsername.addEventListener('click', event => {
         event.preventDefault();
         showError.innerText = '';
@@ -137,7 +159,7 @@ function startScript() {
             const gameId = sessionStorage.getItem('gameId');
             const clientId = sessionStorage.getItem('clientId');
             const payLoad = {
-                method: 'join',
+                'method': 'join',
                 'clientId': clientId,
                 'gameId': gameId,
                 'username': username,
@@ -163,6 +185,20 @@ function startScript() {
     txtUsername.addEventListener('input', inputEventAction);
 
     addMessageListener(handleMessage);
+
+    /*If a gameCode is passed in url */
+    if (gameCode != -1) {
+        let [paramName, gameId] = gameCode.split('=');
+        if (paramName == 'gameCode') {
+            connect()
+                .then(() => {
+                    sessionStorage.setItem('gameId', gameId);
+                    sessionStorage.setItem('reloadRequired', true);
+                    send({method: 'connect'});
+                })
+                ;
+        }
+    } 
 }
 
 export { startScript };

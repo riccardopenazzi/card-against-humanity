@@ -28,19 +28,19 @@ function onPageVisit(pageName) {
 
 async function handleRouteChange() {
     clearMessageListeners();
-    const path = window.location.hash.slice(1) || '';
+    const fullHash =  window.location.hash.slice(1) || '';
+    const [path, queryString] = fullHash.split('?'); 
     const route = routes[path];
-
+    console.log(queryString)
     if (route) {
         onPageVisit(route.name);
         try {
             await route.paint();
             const module = await import(route.script);
             if (typeof module.startScript === 'function') {
-                console.log('Chiamo start');
-                module.startScript();
+                queryString && module.startScript(queryString);
+                !queryString && module.startScript();
             } else {
-                console.log('Chiamo connect');
                 module.executeConnect();
             }
         } catch (error) {

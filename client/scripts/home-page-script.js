@@ -90,7 +90,7 @@ function createBtnCreateGame() {
 function createInputGameCode() {
     inputCode = document.createElement('input');
     inputCode.setAttribute('id', 'txt-game-code');
-    inputCode.setAttribute('placeholder', 'Codice stanza');
+    inputCode.setAttribute('placeholder', 'Esempio: AH45DF');
     inputCode.setAttribute('type', 'text');
     inputCode.classList.add('form-control', 'w-100', 'mx-auto', 'mt-2');
     inputCode.addEventListener('input', () => {
