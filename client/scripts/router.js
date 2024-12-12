@@ -5,6 +5,7 @@ import { paintWaitingRoom } from "./paint-waiting-room.js";
 import { paintPlayingRoom } from "./paint-playing-room.js";
 import { paintScore } from "./paint-score.js";
 import { paintFinalRanking } from "./paint-final-ranking.js";
+import { showLoadingMask, hideLoadingMask } from './loading-mask-controller.js';
 
 const routes = {
     '': { paint: paintHomePage, script: './home-page-script.js', name: 'index' },
@@ -20,8 +21,9 @@ function onPageVisit(pageName) {
         sessionStorage.removeItem('reloadRequired');
         sessionStorage.removeItem('master');
         sessionStorage.removeItem('hostId');
-        sessionStorage.removeItem('hasPlayedCard');
         sessionStorage.removeItem('hasRequestedSkip');
+        sessionStorage.removeItem('playedWhiteCardsNumber');
+        sessionStorage.removeItem('requestedWhiteCardsNumber');
         location.reload();
     }
 }
@@ -33,6 +35,7 @@ async function handleRouteChange() {
     const route = routes[path];
     console.log(queryString)
     if (route) {
+        // showLoadingMask();
         onPageVisit(route.name);
         try {
             await route.paint();
@@ -43,6 +46,7 @@ async function handleRouteChange() {
             } else {
                 module.executeConnect();
             }
+            // hideLoadingMask();
         } catch (error) {
             console.error("Error during script loading", error);
         }

@@ -1,5 +1,6 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
 import { navigateTo } from './router.js';
+import { showLoadingMask, hideLoadingMask } from './loading-mask-controller.js';
 
 let cardsInput;
 let winsInput;
@@ -45,6 +46,7 @@ function handleCreate(message) {
     sessionStorage.setItem('reloadRequired', true);
     /* navigateTo('waiting-room'); */
     document.getElementById('info-popup').classList.remove('hidden');
+    hideLoadingMask();
 }
 
 function handleInvalidClientId() {
@@ -90,6 +92,7 @@ function createBtnConfirmSettings() {
     btnConfirmSettings.classList.add('btn-confirm-settings', 'new-amsterdam-regular');
     btnConfirmSettings.innerText = "Conferma impostazioni";
     btnConfirmSettings.addEventListener('click', () => {
+        showLoadingMask();
         send({ method: 'connect' });
     });
     document.getElementById('btn-confirm-settings-container').appendChild(btnConfirmSettings);
@@ -100,6 +103,7 @@ function createBtnPopupInfo() {
     btn.classList.add('new-amsterdam-regular', 'btn-accept-info');
     btn.innerText = 'Accetto';
     btn.addEventListener('click', () => {
+        showLoadingMask();
         navigateTo('waiting-room');
     });
     document.getElementById('popup-info-paragraph').insertAdjacentElement('afterend', btn);

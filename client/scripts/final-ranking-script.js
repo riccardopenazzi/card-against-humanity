@@ -1,4 +1,5 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
+import { hideLoadingMask } from './loading-mask-controller.js';
 import { navigateTo } from './router.js';
 
 const debugMode = true;
@@ -22,6 +23,7 @@ function handleMessage(message) {
 
 function handleReqScore(message) {
     showFinalRanking(message.score);
+    hideLoadingMask();
 }
 
 function handleInvalidClientId(message) {

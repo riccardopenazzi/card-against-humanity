@@ -1,5 +1,6 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
 import { navigateTo } from './router.js';
+import { showLoadingMask, hideLoadingMask } from './loading-mask-controller.js';
 
 const debugMode = true;
 
@@ -63,6 +64,7 @@ function handleDuplicateUsername() {
 }
 
 function handleStartGame() {
+    showLoadingMask();
     navigateTo('playing-room');
 }
 
@@ -97,14 +99,16 @@ function handleConnect(message) {
     sessionStorage.setItem('clientId', clientId);
 }
 
-function createDivGameCode(target) {    
+function createDivGameCode(target, gameCode = -1) {    
     const pCode = document.createElement('p');
     pCode.classList.add('col-12', 'fst-italic');
-    pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId') + '\nCondividilo con i tuoi amici per farli entrare';
+    pCode.innerText = `'Codice partita: ${gameCode != -1 ? gameCode : sessionStorage.getItem('gameId')}\nCondividilo con i tuoi amici per farli entrare`;
+    // pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId') + '\nCondividilo con i tuoi amici per farli entrare';
     target.insertAdjacentElement('afterend', pCode);
     const buttonCopyText = document.createElement('p');
     buttonCopyText.innerText = 'Copia codice partita';
     buttonCopyText.classList.add('text-decoration-underline', 'text-info');
+    buttonCopyText.style.cursor = 'pointer';
     buttonCopyText.addEventListener('click', () => {
         navigator.clipboard.writeText(`${window.location.href}?gameCode=${sessionStorage.getItem('gameId')}`)
         .then(() => {
@@ -150,7 +154,7 @@ function createComponents() {
     
 }
 
-async function startScript(gameCode = -1) {
+function startScript(gameCode = -1) {
     btnConfirmUsername.addEventListener('click', event => {
         event.preventDefault();
         showError.innerText = '';
@@ -171,9 +175,9 @@ async function startScript(gameCode = -1) {
     });
     
     if (sessionStorage.getItem('hostId')) {
-        createDivGameCode(title);
         createDivBtnStart();
         document.getElementById('btn-start-game').addEventListener('click', e => {
+            showLoadingMask();
             const payLoad = {
                 'method': 'start-game',
                 'gameId': sessionStorage.getItem('gameId'),
@@ -199,6 +203,9 @@ async function startScript(gameCode = -1) {
                 ;
         }
     } 
+
+    createDivGameCode(title, gameCode);
+    hideLoadingMask();
 }
 
 export { startScript };

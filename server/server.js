@@ -233,8 +233,8 @@ function handleStartManche(message, connection) {
 		'blackCard': games[gameId].currentManche.blackCard,
 		'mancheNumber': games[gameId].manches.length,
 		'masterId': games[gameId].currentManche.master,
-		'allPlayersCompleted': allPlayersCompleted,
-		'playedCards': games[gameId].currentManche.playedWhiteCards,
+		/* 'allPlayersCompleted': allPlayersCompleted,
+		'playedCards': games[gameId].currentManche.playedWhiteCards, */
 	}
 	sendMessage(clientId, payLoad, connection);
 }
@@ -267,15 +267,15 @@ function handlePlayCard(message, connection) {
 		return
 	}
 	let gameId = message.gameId;
-	let cardText = message.cardText;
-	if (message.isEmptyCard) {
+	let card = message.card;
+	if (!card.standard) {
 		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == CardVariants.EMPTY_CARD);
 		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	} else {
-		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
+		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == card.cardText);
 		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	}
-	games[gameId].currentManche.addCard(clientId, cardText);
+	games[gameId].currentManche.addCard(clientId, card);
 	const payLoad = {
 		'method': 'play-card',
 	}

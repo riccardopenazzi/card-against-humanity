@@ -1,5 +1,6 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
 import { navigateTo } from './router.js';
+import { showLoadingMask, hideLoadingMask } from './loading-mask-controller.js';
 
 const debugMode = true;
 
@@ -62,16 +63,22 @@ function handleStartManche(message) {
         } else {
             paintMessage('Aspetta che i giocatori scelgano la propria carta');
         }
+        hideLoadingMask();
     } else {
         internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
         internalSkipCardFrame.innerHTML = '';
-        console.log('nascoto')
-        if (sessionStorage.getItem('hasPlayedCard')) {
-            paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
-            /* document.getElementById('btn-skip-card').classList.add */
-        } else {
+        if (!sessionStorage.getItem('playedWhiteCardsNumber')) {
+            sessionStorage.setItem('playedWhiteCardsNumber', 0);
+            sessionStorage.setItem('requestedWhiteCardsNumber', message.blackCard.split("_").length - 1);
             requestCardList();
+        } else {
+            if (parseInt(sessionStorage.getItem('requestedWhiteCardsNumber')) - parseInt(sessionStorage.getItem('playedWhiteCardsNumber')) > 0) {
+                requestCardList();
+            } else {
+                paintMessage(`Hai giocato la tua carta, ora aspetta che lo facciano tutti`);
+            }
         }
+        hideLoadingMask();
     }
 }
 
@@ -80,11 +87,19 @@ function handleReqPlayerCards(message) {
 }
 
 function handlePlayCard(message) {
-    paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
-    btnSkipCard.style.display = 'none';
+    if (parseInt(sessionStorage.getItem('requestedWhiteCardsNumber')) - parseInt(sessionStorage.getItem('playedWhiteCardsNumber')) > 0) {
+        let frame = document.getElementById('frame');
+        frame.innerHTML = '';
+        requestCardList();
+    } else {
+        paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
+        btnSkipCard.style.display = 'none';
+    }
+    hideLoadingMask();
 }
 
 function handleShowPlayedCards(message) {
+    showLoadingMask();
     document.getElementById('frame').innerHTML = '';
     paintMessage('Ecco le carte giocate');
     playedCards = Object.values(message.playedCards);
@@ -98,18 +113,22 @@ function handleShowPlayedCards(message) {
             btnShowChooseWinner.classList.remove('hidden');
         }
     }
+    hideLoadingMask();
 }
 
 function handleShowNextCard(message) {
+    showLoadingMask();
     showSingleCard(playedCards.pop());
     const isMaster = (sessionStorage.getItem('master') === 'true');
     if (isMaster && playedCards.length == 0) {
         document.getElementById('btn-next-card').style.display = 'none';
         btnShowChooseWinner.classList.remove('hidden');
     }
+    hideLoadingMask();
 }
 
 function handleChoosingWinner(message) {
+    showLoadingMask();
     document.getElementById('single-card-frame').innerHTML = '';
     const isMaster = (sessionStorage.getItem('master') === 'true');
     if (isMaster) {
@@ -118,21 +137,25 @@ function handleChoosingWinner(message) {
     } else {
         paintMessage('Il master sta scegliendo il vincitore');
     }
+    hideLoadingMask();
 }
 
 function handleShowWinningCard(message) {
+    showLoadingMask();
     document.getElementById('frame').innerHTML = '';
     paintMessage(`Vincitore manche: ${message.mancheWinner}`);
     showSingleCard(message.cardText);
     btnConfirmWinner.classList.remove('hidden');
+    hideLoadingMask();
 }
 
 function handleWatchScore(message) {
-    sessionStorage.removeItem('hasPlayedCard');
+    showLoadingMask();
     navigateTo('score');
 }
 
 function handleWin(message) {
+    showLoadingMask();
     navigateTo('final-ranking');
 }
 
@@ -141,7 +164,7 @@ function handleReqBlackCardChange(message) {
 }
 
 function handleVoteSkipSurvey(message) {
-    message.result && sessionStorage.removeItem('hasPlayedCard');
+    message.result && sessionStorage.removeItem('playedWhiteCardsNumber');
     skipCardFrame = document.getElementById('skip-card-frame');
     skipCardFrame.style.display = 'none';
     /* skipCardFrame.innerHTML = ''; */
@@ -161,7 +184,6 @@ function handleReqScore(message) {
 }
 
 function handleSkipManche(message) {
-    sessionStorage.removeItem('hasPlayedCard');
     navigateTo('score');
 }
 
@@ -285,10 +307,17 @@ function showSingleCard(card) {
 }
 
 function createBlackCard(card, singleCard = false, clientId) {
-    let cardTextTranformed = modifyCardText(card);
+    let cardText = blackCard;
+    card.forEach(card => {
+        let sentenceTransformed = modifyCardText(card.cardText, cardText);
+        let underscoreIndex = cardText.indexOf("_");
+        cardText = cardText.slice(0, underscoreIndex) + `<span class="underline-text">${sentenceTransformed}</span>` + " " + cardText.slice(underscoreIndex + 1);
+    })
+    ;
+   /*  let cardTextTranformed = modifyCardText(card);
     console.log(cardTextTranformed);
     let cardText = blackCard.replace(/_/g, `<span class="underline-text">${cardTextTranformed}</span>`);
-    console.log(cardText);
+    console.log(cardText); */
     cardText = cardText.charAt(0).toUpperCase() + cardText.slice(1);
     console.log(cardText);
     let cardDiv = document.createElement('div');
@@ -317,21 +346,21 @@ function handleBlackCardClick(clientId, cardDiv) {
     cardDiv.classList.add('selected-card');
 }
 
-function modifyCardText(text) {
+function modifyCardText(text, currentBlackCard) {
     console.log(text)
     let newText = text;
-    let underscoreIndex = blackCard.indexOf('_');
+    let underscoreIndex = currentBlackCard.indexOf('_');
     /*If present remove last . */
     if (newText.endsWith('.')) {
         newText = newText.slice(0, -1);
     }
     /*First char upper case if black card start with _ or if char before _ is ? or ! */
-    if (blackCard.startsWith(' _') || 
-            blackCard.startsWith('_') ||
-            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 2] === '?') ||
-            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 1] === '?') ||
-            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 2] === '!') ||
-            (underscoreIndex - 2 >= 0 && blackCard[underscoreIndex - 1] === '!') ) {
+    if (currentBlackCard.startsWith(' _') || 
+            currentBlackCard.startsWith('_') ||
+            (underscoreIndex - 2 >= 0 && currentBlackCard[underscoreIndex - 2] === '?') ||
+            (underscoreIndex - 2 >= 0 && currentBlackCard[underscoreIndex - 1] === '?') ||
+            (underscoreIndex - 2 >= 0 && currentBlackCard[underscoreIndex - 2] === '!') ||
+            (underscoreIndex - 2 >= 0 && currentBlackCard[underscoreIndex - 1] === '!') ) {
         (newText = newText.charAt(0).toUpperCase() + newText.slice(1));
     } else {
         newText = newText.charAt(0).toLowerCase() + newText.slice(1);
@@ -405,8 +434,10 @@ function showSkipCardSurvey() {
 
 function createConfirmBtn(card, emptyCard = false) {
     let btn = document.createElement('button');
+    let requestedWhiteCardsNumber = parseInt(sessionStorage.getItem('requestedWhiteCardsNumber'));
+    let playedWhiteCardsNumber = parseInt(sessionStorage.getItem('playedWhiteCardsNumber'));
     btn.classList.add('btn-confirm-card');
-    btn.innerText = 'Conferma';
+    btn.innerText = `Conferma ${playedWhiteCardsNumber + 1}° carta`;
     btn.addEventListener('click', e => {
         if (selectedCard) {
             let error = false;
@@ -417,14 +448,25 @@ function createConfirmBtn(card, emptyCard = false) {
                 } 
             }
             if (!error) {
+                showLoadingMask();
+                const card = {
+                    standard: !isCardSpecial(selectedCard),
+                    cardText: isCardSpecial(selectedCard) ? document.getElementById('empty-card-input').value : selectedCard,
+                }
                 const payLoad = {
                     'method': 'play-card',
                     'clientId': sessionStorage.getItem('clientId'),
                     'gameId': sessionStorage.getItem('gameId'),
-                    'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                    // 'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                    'card': card,
                     'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
                 };
-                sessionStorage.setItem('hasPlayedCard', true);
+                playedWhiteCardsNumber++;
+                sessionStorage.setItem('playedWhiteCardsNumber', playedWhiteCardsNumber);
+                if (requestedWhiteCardsNumber - playedWhiteCardsNumber > 0) {
+                    btn.innerText = 'Conferma seconda carta';
+                }
+                /* sessionStorage.setItem('hasPlayedCard', true); */
                 send(payLoad);
             }
         }
@@ -547,7 +589,7 @@ function createBtnNextCard() {
     btnNextCard.setAttribute('id', 'btn-next-card');
     btnNextCard.innerText = 'Prossima carta';
     btnNextCard.addEventListener('click', () => {
-        console.log('click su nextcard');
+        showLoadingMask();
         const payLoad = {
             'method': 'show-next-card',
             'gameId': sessionStorage.getItem('gameId'),
@@ -564,6 +606,7 @@ function createBtnShowChooseWinner() {
     btnShowChooseWinner.setAttribute('id', 'btn-show-choose-winner');
     btnShowChooseWinner.innerText = 'Vai alla scelta vincitore';
     btnShowChooseWinner.addEventListener('click', () => {
+        showLoadingMask();
         const payLoad = {
             'method': 'go-to-choosing-winner',
             'gameId': sessionStorage.getItem('gameId'),
@@ -630,7 +673,6 @@ function startScript() {
         }
     });
     addMessageListener(handleMessage);
-    console.log('Preparo start-manche')
     const payLoad = {
         'method': 'start-manche',
         'clientId': sessionStorage.getItem('clientId'),

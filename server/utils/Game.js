@@ -99,11 +99,14 @@ class Game {
 
 	redistributeWhiteCardsPlayed() {
 		for (const [player, card] of Object.entries(this.currentManche.playedWhiteCards)) {
-			if (card === CardVariants.EMPTY_CARD) {
-				this._players[player].addNewCard(ardVariants.EMPTY_CARD);
-			} else {
-				this._players[player].addNewCard(card);
-			}
+			card.forEach(card => {
+				if (card.standard) {
+					this._players[player].addNewCard(card.cardText);
+				} else {
+					this._players[player].addNewCard(CardVariants.EMPTY_CARD);
+				}
+			})
+			;
 		}
 	}
 
@@ -112,7 +115,18 @@ class Game {
 	}
 
 	checkMancheComplete() {
-		return this.currentManche.whiteCardsPlayed() == (Object.keys(this._players).length - 1);
+		let playedWhiteCards = this.currentManche.playedWhiteCards;
+		if (Object.keys(playedWhiteCards).length != (Object.keys(this._players).length - 1)) {
+			return false;
+		}
+		let necessaryCards = this.currentManche.blackCard.split("_").length - 1;
+		for (const cards of Object.values(playedWhiteCards)) {
+			if (cards.length < necessaryCards) {
+				return false;
+			} 
+		}
+		return true;
+		/* return this.currentManche.whiteCardsPlayed() == (Object.keys(this._players).length - 1); */
 	}
 
 	checkAllPlayersCompletedManche() {
@@ -153,7 +167,10 @@ class Game {
 
 	newManche() {
 		Object.values(this.currentManche.playedWhiteCards).forEach(playedCard => {
-			this._whiteCardsPlayed.push(playedCard);
+			playedCard.forEach(singleCard => {
+				this._whiteCardsPlayed.push(playedCard);
+			})
+			;
 		})
 		;
 		Object.keys(this._players).forEach(player => {
@@ -206,6 +223,15 @@ class Game {
 
 	#initBlackDeck() {
 		debugMode && console.log('Init black deck');
+		/* return [
+			"Quando torno da _ come prima cosa faccio sempre _ .",
+			"Un _ senza _ non ha senso.",
+			"Se ti piace _ adorerai _ .",
+			"50 _ sono sempre meglio di 25 _ .",
+			"Scommetto che non riesci a _ senza _ .",
+			"Un _ in culo e una _ in mano.",
+			"Sei solo un _ con un grandissimo _ ."
+		] */
 		return [
 			"La nuova norma sulla sicurezza ora proibisce _ sugli aerei.",
 			"È un peccato che i ragazzini al giorno d'oggi partecipino a _ .",

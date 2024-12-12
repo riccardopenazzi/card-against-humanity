@@ -25,7 +25,13 @@ class Manche {
     }
 
     addCard(clientId, card) {
-        this._playedWhiteCards[clientId] = card;
+        if (Object.hasOwn(this._playedWhiteCards, clientId)) {
+            this._playedWhiteCards[clientId].push(card);
+        } else {
+            this._playedWhiteCards[clientId] = [];
+            this._playedWhiteCards[clientId].push(card);
+        }
+        /* this._playedWhiteCards[clientId] = card; */
         debugMode && console.log(this._playedWhiteCards);
     }
 
