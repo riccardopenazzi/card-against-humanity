@@ -24,6 +24,8 @@ function handleMessage(message) {
 
 function handleReqScore(message) {
     sessionStorage.removeItem('hasConfirmed');
+    sessionStorage.removeItem('playedWhiteCardsNumber');
+    sessionStorage.removeItem('requestedWhiteCardsNumber');
     showScores(message.score, message.readyPlayers);
 }
 
