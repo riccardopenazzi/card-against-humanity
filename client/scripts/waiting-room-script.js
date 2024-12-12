@@ -1,5 +1,6 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
 import { navigateTo } from './router.js';
+import { showLoadingMask, hideLoadingMask } from './loading-mask-controller.js';
 
 const debugMode = true;
 
@@ -63,6 +64,7 @@ function handleDuplicateUsername() {
 }
 
 function handleStartGame() {
+    showLoadingMask();
     navigateTo('playing-room');
 }
 
@@ -175,6 +177,7 @@ function startScript(gameCode = -1) {
     if (sessionStorage.getItem('hostId')) {
         createDivBtnStart();
         document.getElementById('btn-start-game').addEventListener('click', e => {
+            showLoadingMask();
             const payLoad = {
                 'method': 'start-game',
                 'gameId': sessionStorage.getItem('gameId'),
@@ -202,6 +205,7 @@ function startScript(gameCode = -1) {
     } 
 
     createDivGameCode(title, gameCode);
+    hideLoadingMask();
 }
 
 export { startScript };

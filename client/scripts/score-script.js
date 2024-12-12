@@ -1,4 +1,5 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
+import { hideLoadingMask, showLoadingMask } from './loading-mask-controller.js';
 import { navigateTo } from './router.js';
 
 const debugMode = true;
@@ -27,9 +28,11 @@ function handleReqScore(message) {
     sessionStorage.removeItem('playedWhiteCardsNumber');
     sessionStorage.removeItem('requestedWhiteCardsNumber');
     showScores(message.score, message.readyPlayers);
+    hideLoadingMask();
 }
 
 function handleNewManche(message) {
+    showLoadingMask();
     sessionStorage.removeItem('hasVoted');
     sessionStorage.removeItem('hasRequestedSkip');
     navigateTo('playing-room');

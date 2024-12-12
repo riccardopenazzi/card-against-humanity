@@ -1,5 +1,6 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
 import { navigateTo } from './router.js';
+import { showLoadingMask, hideLoadingMask } from './loading-mask-controller.js';
 
 const debugMode = true;
 
@@ -62,6 +63,7 @@ function handleStartManche(message) {
         } else {
             paintMessage('Aspetta che i giocatori scelgano la propria carta');
         }
+        hideLoadingMask();
     } else {
         internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
         internalSkipCardFrame.innerHTML = '';
@@ -76,6 +78,7 @@ function handleStartManche(message) {
                 paintMessage(`Hai giocato la tua carta, ora aspetta che lo facciano tutti`);
             }
         }
+        hideLoadingMask();
     }
 }
 
@@ -92,9 +95,11 @@ function handlePlayCard(message) {
         paintMessage('Hai giocato la tua carta, ora aspetta che lo facciano tutti');
         btnSkipCard.style.display = 'none';
     }
+    hideLoadingMask();
 }
 
 function handleShowPlayedCards(message) {
+    showLoadingMask();
     document.getElementById('frame').innerHTML = '';
     paintMessage('Ecco le carte giocate');
     playedCards = Object.values(message.playedCards);
@@ -108,18 +113,22 @@ function handleShowPlayedCards(message) {
             btnShowChooseWinner.classList.remove('hidden');
         }
     }
+    hideLoadingMask();
 }
 
 function handleShowNextCard(message) {
+    showLoadingMask();
     showSingleCard(playedCards.pop());
     const isMaster = (sessionStorage.getItem('master') === 'true');
     if (isMaster && playedCards.length == 0) {
         document.getElementById('btn-next-card').style.display = 'none';
         btnShowChooseWinner.classList.remove('hidden');
     }
+    hideLoadingMask();
 }
 
 function handleChoosingWinner(message) {
+    showLoadingMask();
     document.getElementById('single-card-frame').innerHTML = '';
     const isMaster = (sessionStorage.getItem('master') === 'true');
     if (isMaster) {
@@ -128,20 +137,25 @@ function handleChoosingWinner(message) {
     } else {
         paintMessage('Il master sta scegliendo il vincitore');
     }
+    hideLoadingMask();
 }
 
 function handleShowWinningCard(message) {
+    showLoadingMask();
     document.getElementById('frame').innerHTML = '';
     paintMessage(`Vincitore manche: ${message.mancheWinner}`);
     showSingleCard(message.cardText);
     btnConfirmWinner.classList.remove('hidden');
+    hideLoadingMask();
 }
 
 function handleWatchScore(message) {
+    showLoadingMask();
     navigateTo('score');
 }
 
 function handleWin(message) {
+    showLoadingMask();
     navigateTo('final-ranking');
 }
 
@@ -434,6 +448,7 @@ function createConfirmBtn(card, emptyCard = false) {
                 } 
             }
             if (!error) {
+                showLoadingMask();
                 const card = {
                     standard: !isCardSpecial(selectedCard),
                     cardText: isCardSpecial(selectedCard) ? document.getElementById('empty-card-input').value : selectedCard,
@@ -574,7 +589,7 @@ function createBtnNextCard() {
     btnNextCard.setAttribute('id', 'btn-next-card');
     btnNextCard.innerText = 'Prossima carta';
     btnNextCard.addEventListener('click', () => {
-        console.log('click su nextcard');
+        showLoadingMask();
         const payLoad = {
             'method': 'show-next-card',
             'gameId': sessionStorage.getItem('gameId'),
@@ -591,6 +606,7 @@ function createBtnShowChooseWinner() {
     btnShowChooseWinner.setAttribute('id', 'btn-show-choose-winner');
     btnShowChooseWinner.innerText = 'Vai alla scelta vincitore';
     btnShowChooseWinner.addEventListener('click', () => {
+        showLoadingMask();
         const payLoad = {
             'method': 'go-to-choosing-winner',
             'gameId': sessionStorage.getItem('gameId'),
@@ -657,7 +673,6 @@ function startScript() {
         }
     });
     addMessageListener(handleMessage);
-    console.log('Preparo start-manche')
     const payLoad = {
         'method': 'start-manche',
         'clientId': sessionStorage.getItem('clientId'),
