@@ -453,7 +453,7 @@ async function checkClientsConnected() {
 							const payLoad = {
 								'method': MessageTypes.CONNECTION_TROUBLE_MANAGED,
 							}
-							sendMessage(clientId, payLoad);
+							sendBroadcastMessage(gameId, payLoad);
 						} else {
 							connectedClients[clientId].retryCount = 0;
 							if (!checkSomeoneIsDisconnecting(gameId)) {
