@@ -202,6 +202,7 @@ function handleConnectionTrouble(message) {
 
 function handleConnectionTroubleManaged(message) {
     hidePopup('single-disconnection-popup');
+    hidePopup('disconnection-popup');
 }
 
 function handlePlayerDisconnected(message) {
