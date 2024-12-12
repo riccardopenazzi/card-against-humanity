@@ -100,7 +100,11 @@ class Game {
 	redistributeWhiteCardsPlayed() {
 		for (const [player, card] of Object.entries(this.currentManche.playedWhiteCards)) {
 			card.forEach(card => {
-				this._players[player].addNewCard(card);
+				if (card.standard) {
+					this._players[player].addNewCard(card.cardText);
+				} else {
+					this._players[player].addNewCard(CardVariants.EMPTY_CARD);
+				}
 			})
 			;
 		}

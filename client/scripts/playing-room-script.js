@@ -294,8 +294,8 @@ function showSingleCard(card) {
 
 function createBlackCard(card, singleCard = false, clientId) {
     let cardText = blackCard;
-    card.forEach(sentence => {
-        let sentenceTransformed = modifyCardText(sentence, cardText);
+    card.forEach(card => {
+        let sentenceTransformed = modifyCardText(card.cardText, cardText);
         let underscoreIndex = cardText.indexOf("_");
         cardText = cardText.slice(0, underscoreIndex) + `<span class="underline-text">${sentenceTransformed}</span>` + " " + cardText.slice(underscoreIndex + 1);
     })
@@ -434,11 +434,16 @@ function createConfirmBtn(card, emptyCard = false) {
                 } 
             }
             if (!error) {
+                const card = {
+                    standard: !isCardSpecial(selectedCard),
+                    cardText: isCardSpecial(selectedCard) ? document.getElementById('empty-card-input').value : selectedCard,
+                }
                 const payLoad = {
                     'method': 'play-card',
                     'clientId': sessionStorage.getItem('clientId'),
                     'gameId': sessionStorage.getItem('gameId'),
-                    'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                    // 'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                    'card': card,
                     'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
                 };
                 playedWhiteCardsNumber++;

@@ -267,15 +267,15 @@ function handlePlayCard(message, connection) {
 		return
 	}
 	let gameId = message.gameId;
-	let cardText = message.cardText;
-	if (message.isEmptyCard) {
+	let card = message.card;
+	if (!card.standard) {
 		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == CardVariants.EMPTY_CARD);
 		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	} else {
-		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == cardText);
+		let playedCardIndex = games[gameId].players[clientId].playerCards.findIndex(x => x == card.cardText);
 		games[gameId].players[clientId].playerCards.splice(playedCardIndex, 1);
 	}
-	games[gameId].currentManche.addCard(clientId, cardText);
+	games[gameId].currentManche.addCard(clientId, card);
 	const payLoad = {
 		'method': 'play-card',
 	}
@@ -434,7 +434,7 @@ function handleVoteSkipSurvey(message, connection) {
 }
 /* End functions */
 
-//const periodicallyCheck = setInterval(checkClientsConnected, 4000);
+const periodicallyCheck = setInterval(checkClientsConnected, 4000);
 
 async function checkClientsConnected() {
 	const release = await mutex.acquire();
