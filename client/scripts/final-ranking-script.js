@@ -41,6 +41,7 @@ function handleConnectionTrouble(message) {
 
 function handleConnectionTroubleManaged(message) {
     hidePopup('single-disconnection-popup');
+    hidePopup('disconnection-popup'); //forse non necessario ma a volte al giocatore disconnesso
 }
 
 function handlePlayerDisconnected(message) {
