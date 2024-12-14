@@ -124,6 +124,10 @@ function createBtnPopupInfo() {
 }
 
 function executeStartScript() {
+    if (sessionStorage.getItem('tutorialReloadRequired')) {
+        sessionStorage.removeItem('tutorialReloadRequired');
+        window.location.reload();
+    }
     createBtnCreateGame();
     createInputGameCode();
     createBtnJoinGame();

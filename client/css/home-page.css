@@ -1,5 +1,6 @@
 .btn-create-game,
-.btn-join-game {
+.btn-join-game
+.btn-tutorial {
     padding: 10px;
     border-radius: 8px;
 }
@@ -16,4 +17,9 @@
 
 .label-game-code {
     text-align: left;
+}
+
+.btn-tutorial {
+    background-color: #6899e8;
+    color: white;
 }
