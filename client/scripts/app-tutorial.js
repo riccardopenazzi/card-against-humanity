@@ -7,7 +7,7 @@ function startTutorial() {
     const tour = new Shepherd.Tour({
         useModalOverlay: true,
         defaultStepOptions: {
-            classes: 'shepherd-theme-arrows',
+            classes: 'shepherd-theme-dark',
             scrollTo: true,
             cancelIcon: { enabled: false },
         },
@@ -362,7 +362,7 @@ function startTutorial() {
                 text: 'Fine',
                 action: () => {
                     sessionStorage.clear();
-                    sessionStorage.setItem('tutorialReloadRequired');
+                    sessionStorage.setItem('tutorialReloadRequired', true);
                     navigateTo('');
                     tour.complete();
                 },
