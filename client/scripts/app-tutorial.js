@@ -363,7 +363,6 @@ function startTutorial() {
                 action: () => {
                     sessionStorage.clear();
                     navigateTo('');
-                    tour.next();
                 },
             },
         ],
