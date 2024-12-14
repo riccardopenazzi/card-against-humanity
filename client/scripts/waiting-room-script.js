@@ -159,6 +159,10 @@ function createComponents() {
 }
 
 function startScript(gameCode = -1) {
+    if (sessionStorage.getItem('tutorialReloadRequired')) {
+        sessionStorage.removeItem('tutorialReloadRequired');
+        window.location.reload();
+    }
     btnConfirmUsername.addEventListener('click', event => {
         event.preventDefault();
         showError.innerText = '';

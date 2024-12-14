@@ -362,7 +362,9 @@ function startTutorial() {
                 text: 'Fine',
                 action: () => {
                     sessionStorage.clear();
+                    sessionStorage.setItem('tutorialReloadRequired');
                     navigateTo('');
+                    tour.complete();
                 },
             },
         ],
