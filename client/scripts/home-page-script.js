@@ -1,5 +1,6 @@
 import { connect, send, addMessageListener } from './connection-manager.js';
 import { navigateTo } from './router.js';
+import { startTutorial } from './app-tutorial.js';
 
 let inputCode;
 let btnJoin;
@@ -127,6 +128,11 @@ function executeStartScript() {
     createInputGameCode();
     createBtnJoinGame();
     createBtnPopupInfo();
+    document.getElementById('btn-tutorial').addEventListener('click', () => {
+        sessionStorage.setItem('tutorialActive', true);
+        startTutorial();
+    })
+    ;
 }
 
 export { executeConnect };

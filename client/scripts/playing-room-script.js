@@ -58,11 +58,7 @@ function handleStartManche(message) {
     const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
     sessionStorage.setItem('master', isMaster);
     if (isMaster) {
-        if (message.allPlayersCompleted) {
-            fillMasterCardList(message.playedCards);
-        } else {
-            paintMessage('Aspetta che i giocatori scelgano la propria carta');
-        }
+        paintMessage('Aspetta che i giocatori scelgano la propria carta');
         hideLoadingMask();
     } else {
         internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
@@ -226,6 +222,7 @@ function requestCardList() {
 function fillCardList(cardList) {
     let frame = document.getElementById('frame');
     let cardListDiv = document.createElement('div');
+    cardListDiv.setAttribute('id', 'scrollable-cards');
     cardListDiv.classList.add('scrollable-cards');
     createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
@@ -284,6 +281,7 @@ function fillMasterCardList(playedCards) {
     let frame = document.getElementById('frame');
     frame.innerHTML = '';
     let cardListDiv = document.createElement('div');
+    cardListDiv.setAttribute('id', 'played-card-tutorial');
     cardListDiv.classList.add('scrollable-cards');
     createScrollFeature(cardListDiv);
     frame.appendChild(cardListDiv);
@@ -434,11 +432,13 @@ function showSkipCardSurvey() {
 }
 
 function createConfirmBtn(card, emptyCard = false) {
+    const tutorialActive = sessionStorage.getItem('tutorialActive');
     let btn = document.createElement('button');
     let requestedWhiteCardsNumber = parseInt(sessionStorage.getItem('requestedWhiteCardsNumber'));
     let playedWhiteCardsNumber = parseInt(sessionStorage.getItem('playedWhiteCardsNumber'));
+    btn.setAttribute('id', 'btn-confirm-card');
     btn.classList.add('btn-confirm-card');
-    btn.innerText = `Conferma ${playedWhiteCardsNumber + 1}° carta`;
+    btn.innerText = `Conferma ${tutorialActive ? 1 : playedWhiteCardsNumber + 1}° carta`;
     btn.addEventListener('click', e => {
         if (selectedCard) {
             let error = false;
@@ -486,7 +486,8 @@ function createEmptyCardErrorMessage() {
 
 function createChooseWinnermBtn() {
     let btn = document.createElement('button');
-    btn.classList.add('btn-winning-card', 'mochiy-pop-p-one-regular');
+    btn.classList.add('btn-winning-card', 'new-amsterdam-regular');
+    btn.setAttribute('id', 'btn-winning-card');
     btn.innerText = 'Scegli';
     btn.addEventListener('click', e => {
         if (selectedWinner) {
@@ -560,11 +561,9 @@ function hidePopup(popupId) {
 }
 
 function createBtnSkipCard() {
-    console.log(sessionStorage.getItem('master') === 'false')
     if (sessionStorage.getItem('hasRequestedSkip')) {
         return;
     }
-    console.log(internalSkipCardFrame)
     internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
     internalSkipCardFrame.innerHTML = '';
     btnSkipCard = document.createElement('button');
@@ -580,7 +579,6 @@ function createBtnSkipCard() {
         send(payLoad);
     });
     internalSkipCardFrame.appendChild(btnSkipCard);
-    console.log(document.getElementById('btn-skip-card'))
 }
 
 function createBtnNextCard() {
@@ -658,15 +656,70 @@ function createShowScoreIcon() {
     console.log(document.getElementById('btn-skip-card'))
 }
 
+function paintTutorialScreen() {
+    if (!sessionStorage.getItem('masterMode')) {
+        sessionStorage.setItem('masterMode', true);
+        sessionStorage.setItem('notShowPlayed', true);
+    } else if (sessionStorage.getItem('notShowPlayed')) {
+        sessionStorage.removeItem('notShowPlayed');
+    } else {
+        sessionStorage.removeItem('masterMode');
+    }
+    const message = {
+        'blackCard': "_ ecco perchè ho male ovunque.",
+        'mancheNumber': 1,
+        'master': sessionStorage.getItem('masterMode'),
+        'showPlayed': !sessionStorage.getItem('notShowPlayed'),
+    }
+    const isMaster = message.master;
+    const showPlayed = message.showPlayed;
+    document.getElementById('title').innerHTML = '';
+    document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
+    document.getElementById('black-card').innerText = message.blackCard;
+    blackCard = message.blackCard;
+    if (isMaster) {
+        if (!showPlayed) {
+            paintMessage('Aspetta che i giocatori scelgano la propria carta');
+        } else {
+            let frame = document.getElementById('frame');
+            frame.innerHTML = '';
+            let cardList = {
+                a: [{
+                    c: '',
+                    cardText: "Stupro e Saccheggio."
+                }],
+                b: [{
+                    c: '',
+                    cardText: "Un montaggio pallavolistico omoerotico."
+                }],
+            }
+            fillMasterCardList(cardList);
+        }
+    } else {
+        let frame = document.getElementById('frame');
+        frame.innerHTML = '';
+        internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
+        internalSkipCardFrame.innerHTML = '';
+        let cardList = [
+			"Un montaggio pallavolistico omoerotico.",
+			"Non fregarsene un cazzo del Terzo Mondo.",
+			"Sexting.",
+			"Pornostar.",
+			"Avere l'approvazione di Lapo Elkan.",
+			"Stupro e Saccheggio.",
+        ]
+        fillCardList(cardList);
+    }
+}
+
 function startScript() {
-    console.log('Start script chiamata')
     createBtnSkipCard();
     createBtnNextCard();
     createBtnShowChooseWinner();
     createBtnConfirmWinner();
     createShowScoreIcon();
     
-    btnPopupScoreClose.addEventListener('click', () => {
+    btnPopupScoreClose?.addEventListener('click', () => {
         const modalElement = document.getElementById('popup-score');
         const modal = bootstrap.Modal.getInstance(modalElement);
         if (modal) {
@@ -674,12 +727,17 @@ function startScript() {
         }
     });
     addMessageListener(handleMessage);
-    const payLoad = {
-        'method': 'start-manche',
-        'clientId': sessionStorage.getItem('clientId'),
-        'gameId': sessionStorage.getItem('gameId'),
+    const tutorialActive = sessionStorage.getItem('tutorialActive');
+    if (!tutorialActive) {
+        const payLoad = {
+            'method': 'start-manche',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    } else {
+        paintTutorialScreen();
     }
-    send(payLoad);
 }
 
-export { startScript };
+export { startScript, paintTutorialScreen };

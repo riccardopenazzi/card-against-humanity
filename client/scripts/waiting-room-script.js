@@ -101,11 +101,15 @@ function handleConnect(message) {
 
 function createDivGameCode(target, gameCode = -1) {    
     const pCode = document.createElement('p');
+    const tutorialActive = sessionStorage.getItem('tutorialActive');
+    const tutorialGameCode = 'AT567A'
     pCode.classList.add('col-12', 'fst-italic');
-    pCode.innerText = `'Codice partita: ${gameCode != -1 ? gameCode : sessionStorage.getItem('gameId')}\nCondividilo con i tuoi amici per farli entrare`;
+    pCode.setAttribute('id', 'game-code-tutorial');
+    pCode.innerText = `Codice partita: ${tutorialActive ? tutorialGameCode : gameCode != -1 ? gameCode : sessionStorage.getItem('gameId')}\nCondividilo con i tuoi amici per farli entrare`;
     // pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId') + '\nCondividilo con i tuoi amici per farli entrare';
     target.insertAdjacentElement('afterend', pCode);
     const buttonCopyText = document.createElement('p');
+    buttonCopyText.setAttribute('id', 'copy-code-tutorial');
     buttonCopyText.innerText = 'Copia codice partita';
     buttonCopyText.classList.add('text-decoration-underline', 'text-info');
     buttonCopyText.style.cursor = 'pointer';
@@ -174,7 +178,8 @@ function startScript(gameCode = -1) {
         }
     });
     
-    if (sessionStorage.getItem('hostId')) {
+    const tutorialActive = sessionStorage.getItem('tutorialActive');
+    if (sessionStorage.getItem('hostId') || tutorialActive) {
         createDivBtnStart();
         document.getElementById('btn-start-game').addEventListener('click', e => {
             showLoadingMask();
