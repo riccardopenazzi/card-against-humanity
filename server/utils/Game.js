@@ -240,18 +240,10 @@ class Game {
 
 	#initBlackDeck() {
 		debugMode && console.log('Init black deck');
-		/* return [
-			"Quando torno da _ come prima cosa faccio sempre _ .",
-			"Un _ senza _ non ha senso.",
-			"Se ti piace _ adorerai _ .",
-			"50 _ sono sempre meglio di 25 _ .",
-			"Scommetto che non riesci a _ senza _ .",
-			"Un _ in culo e una _ in mano.",
-			"Sei solo un _ con un grandissimo _ ."
-		] */
 		return [
 			"La nuova norma sulla sicurezza ora proibisce _ sugli aerei.",
 			"È un peccato che i ragazzini al giorno d'oggi partecipino a _ .",
+			"Quando torno da _ come prima cosa faccio sempre _ .",
 			"Fra 1.000 anni, quando le banconote saranno soltanto un ricordo lontano, _ sarà il nostro denaro.",
 			"La lega serie A ha vietato _ poichè dà un vantaggio ingiusto ai giocatori.",
 			"Qual è il vizio segreto di Batman? _ .",
@@ -261,6 +253,7 @@ class Game {
 			"Mentre gli USA e la Russia gareggiavano per la conquista della Luna, il Messico ha investito milioni di pesos in _ .",
 			"Nel nuovo film della Disney, Hannah Montana si scontra per la prima volta contro _ .",
 			"Qual è la nuova dieta del momento? _ .",
+			"Un _ senza _ non ha senso.",
 			"Cosa si mangia Vin Diesel per cena? _ .",
 			"Quando il faraone rimase impassibile, Mosè scateno la piaga _ .",
 			"Nel carcere di Los Angeles le voci dicono che puoi scambiare 200 sigarette per _ .",
@@ -271,11 +264,13 @@ class Game {
 			"Amaro Montenegro. Sapore di _ .",
 			"Negli ultimi istanti di vita di Michael Jackson lui pensò a _ .",
 			"Ai neri piace _ .",
+			"Se ti piace _ adorerai _ .",
 			"_ ecco perchè ho male ovunque.",
 			"Una romantica cena a lume di candela è incompleta senza _ .",
 			"Sono Valerio Staffelli e sono qui per parlavi di _ .",
 			"La gita scolastica fu completamente rovinata da _ .",
 			"Quando sarò il capo del governo creerò il Ministero del _ .",
+			"Un _ in culo e una _ in mano.",
 			"Cosa non fallisce mai nel ravvivare una festa? _ .",
 			"Cosa migliora con l'età? _ .",
 			"_ buono fino all'ultima goccia.",
@@ -286,6 +281,7 @@ class Game {
 			"Durante il sesso mi piace pensare a _ .",
 			"_ così è come voglio morire!",
 			"Quale sarà il prossimo giocattolo dell'Happy Meal? _ .",
+			"Sei solo un _ con un grandissimo _ .",
 			"Cosa sarà disponibile a volontà in paradiso? _ .",
 			"Non so con che armi sarà combattuta la terza guerra mondiale. Ma nella quarta si useranno sicuramente _ .",
 			"Cosa ti permette di portarti a letto, con assoluta certezza, una ragazza? _ .",
@@ -313,8 +309,10 @@ class Game {
 			"Annunciata la nuova serie con Bruno Barbieri, si chiamerà 4 _ .",
 			"La mia infanzia è finita quando _ .",
 			"_ mi è successo proprio ieri.",
+			"Scommetto che non riesci a _ senza _ .",
 			"_ è il mio passatempo preferito.",
 			"_ è il mio sport preferito.",
+			"50 _ sono sempre meglio di 25 _ .",
 			"Mia moglie mi ha lasciato dopo che _ .",
 			"La cosa che odio di più dei napoletani è _ .",
 			"Nonna ora togliti la dentiera e _ .",
