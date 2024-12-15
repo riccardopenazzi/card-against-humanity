@@ -19,6 +19,7 @@ class Game {
 		this._surveyCounter = 0;
 		this._whiteCardMode = vars.whiteCardMode;
 		this._whiteCardsPlayed = [];
+		this._waitingPlayers = [];
 	}
 
 	get players() {
@@ -55,6 +56,10 @@ class Game {
 
 	get surveyResult() {
 		return this._surveyCounter;
+	}
+
+	get waitingPlayers() {
+		return this._waitingPlayers;
 	}
 
 	addPlayer(player) {
@@ -175,8 +180,10 @@ class Game {
 		;
 		Object.keys(this._players).forEach(player => {
 			if (player !== this.currentManche.master) {
+				if (this._whiteCardMode && this._waitingPlayers.some(x => x.clientId == player)) {
+					this._players[player].addNewCard(CardVariants.EMPTY_CARD);
+				}
 				let cardsToAdd = this._startCardNumber - this.getRealPlayerCardsNumber(player);
-				console.log('start: ' + this._startCardNumber + ' real: ' + this.getRealPlayerCardsNumber(player) + ' add ' + cardsToAdd)
 				while (cardsToAdd-- > 0) {
 					if (this._whiteCards.length === 0) {
 						this._whiteCards = [...this._whiteCardsPlayed].sort(() => Math.random() - 0.5);
@@ -184,6 +191,8 @@ class Game {
 					}
 					this._players[player].addNewCard(this._whiteCards.pop());
 				}
+				let index = this._waitingPlayers.findIndex(x => x.clientId == player);
+				index != -1 && this._waitingPlayers.splice(index, 1);
 			}
 		});
 		if (this._blackCards.length === 0) {
@@ -219,6 +228,14 @@ class Game {
 	skipManche() {
 		this.redistributeWhiteCardsPlayed();
 		this.currentManche.setWinner(Object.keys(this._players)[0]);
+	}
+
+	addWaitingPlayer(player) {
+		this._waitingPlayers.push(player);
+	}
+
+	resetWaitingPlayers() {
+		this._waitingPlayers = [];
 	}
 
 	#initBlackDeck() {

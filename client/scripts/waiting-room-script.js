@@ -19,6 +19,8 @@ function handleMessage(message) {
         'duplicated-username': handleDuplicateUsername,
         'start-game': handleStartGame,
         'invalid-clientId': handleInvalidClientId,
+        'added-in-waiting-queue': handleAddedInWaitingQueue,
+        'new-manche': handleNewManche,
         'server-error': handleServerError,
         'connection-trouble': handleConnectionTrouble,
         'connection-trouble-managed': handleConnectionTroubleManaged,
@@ -68,6 +70,22 @@ function handleStartGame() {
     navigateTo('playing-room');
 }
 
+function handleAddedInWaitingQueue() {
+    let container = document.getElementById('players-list');
+    container.innerHTML = ''; //brutal way maybe to review but not now
+    let message = document.createElement('p');
+    message.innerText = 'La partita è già in corso, sei in lista di attesa. Verrai aggiunto il prima possibile';
+    container.appendChild(message);
+    txtUsername.removeEventListener('input', inputEventAction);
+    txtUsername.value = '';
+    txtUsername.setAttribute('disabled', 'true');
+    btnConfirmUsername.disabled = true;
+}
+
+function handleNewManche() {
+    handleStartGame();
+}
+
 function handleInvalidClientId() {
     navigateTo('');
 }
@@ -105,7 +123,7 @@ function createDivGameCode(target, gameCode = -1) {
     const tutorialGameCode = 'AT567A'
     pCode.classList.add('col-12', 'fst-italic');
     pCode.setAttribute('id', 'game-code-tutorial');
-    pCode.innerText = `Codice partita: ${tutorialActive ? tutorialGameCode : gameCode != -1 ? gameCode : sessionStorage.getItem('gameId')}\nCondividilo con i tuoi amici per farli entrare`;
+    pCode.innerText = `Codice partita: ${tutorialActive ? tutorialGameCode : gameCode != -1 ? gameCode.split('=')[1] : sessionStorage.getItem('gameId')}\nCondividilo con i tuoi amici per farli entrare`;
     // pCode.innerText = 'Codice partita: ' + sessionStorage.getItem('gameId') + '\nCondividilo con i tuoi amici per farli entrare';
     target.insertAdjacentElement('afterend', pCode);
     const buttonCopyText = document.createElement('p');
