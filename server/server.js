@@ -155,19 +155,20 @@ function handleVerifyGameCode(message, connection) {
 	}
 	let gameCode = message.gameCode;
 	const isValid = isGameCodeValid(gameCode);
-	if (isValid && games[gameCode].gameState === GameState.WAITING_FOR_PLAYERS) {
+	if (isValid) {
 		const payLoad = {
 			'method': 'verify-game-code',
 			'gameCode': gameCode,
 			'result': 'valid',
 		}
 		sendMessage(clientId, payLoad, connection);
-	} else if (isValid && games[gameCode].gameState !== GameState.WAITING_FOR_PLAYERS) {
+	} /* else if (isValid && games[gameCode].gameState !== GameState.WAITING_FOR_PLAYERS) {
 		const payLoad = {
 			'method': 'game-already-started',
 		}
 		sendMessage(clientId, payLoad, connection);
-	} else {
+		games[gameCode].addWaitingPlayer()
+	} */ else {
 		const payLoad = {
 			'method': 'verify-game-code',
 			'gameCode': gameCode,
@@ -190,15 +191,23 @@ function handleJoinGame(message, connection) {
 	let username = message.username;
 	if (checkUniqueUsername(gameId, username)) {
 		let player = new Player(clientId, username);
-		games[gameId].addPlayer(player);
-		debugMode && console.log('Player added, ', games[gameId].players);
-		const payLoad = {
-			'method': 'update-players-list',
-			'playersList': games[gameId].usernamesList,
-			'clientId': clientId,
-			'username': username,
-		};
-		sendBroadcastMessage(gameId, payLoad, connection);
+		if (games[gameId].gameState === GameState.WAITING_FOR_PLAYERS) {
+			games[gameId].addPlayer(player);
+			debugMode && console.log('Player added, ', games[gameId].players);
+			const payLoad = {
+				'method': 'update-players-list',
+				'playersList': games[gameId].usernamesList,
+				'clientId': clientId,
+				'username': username,
+			};
+			sendBroadcastMessage(gameId, payLoad, connection);
+		} else {
+			games[gameId].addWaitingPlayer(player);
+			const payLoad = {
+				'method': 'added-in-waiting-queue',
+			};
+			sendMessage(clientId, payLoad, connection);
+		}
 	} else {
 		const payLoad = {
 			'method': 'duplicated-username',
@@ -371,6 +380,7 @@ function handleNewManche(message, connection) {
 	let gameId = message.gameId;
 	games[gameId].incReadyPlayers();
 	if (games[gameId].checkAllPlayersReady()) {
+		addWaitingPlayersInGame(gameId);
 		games[gameId].newManche();
 		const payLoad = {
 			'method': 'new-manche',
@@ -505,6 +515,14 @@ async function checkClientsConnected() {
 	} finally {
 		release();
 	}
+}
+
+function addWaitingPlayersInGame(gameId) {
+	games[gameId].waitingPlayers.forEach(player => {
+		games[gameId].addPlayer(player);
+	})
+	;
+	// games[gameId].resetWaitingPlayers(); //rimossi in Game.js per dare carta empty
 }
 
 function checkSomeoneIsDisconnecting(gameId) {
