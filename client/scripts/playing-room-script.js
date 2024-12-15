@@ -438,7 +438,8 @@ function createConfirmBtn(card, emptyCard = false) {
     let playedWhiteCardsNumber = parseInt(sessionStorage.getItem('playedWhiteCardsNumber'));
     btn.setAttribute('id', 'btn-confirm-card');
     btn.classList.add('btn-confirm-card');
-    btn.innerText = `Conferma ${tutorialActive ? 1 : playedWhiteCardsNumber + 1}° carta`;
+    /* btn.innerText = `Conferma ${tutorialActive ? 1 : playedWhiteCardsNumber + 1}° carta`; */
+    btn.innerText = `Conferma ${tutorialActive ? '' : requestedWhiteCardsNumber == 1 ? '' : `${(playedWhiteCardsNumber + 1)}° carta`}`;
     btn.addEventListener('click', e => {
         if (selectedCard) {
             let error = false;
