@@ -20,6 +20,7 @@ class Game {
 		this._whiteCardMode = vars.whiteCardMode;
 		this._whiteCardsPlayed = [];
 		this._waitingPlayers = [];
+		this._restartUniverseMode = vars.restartUniverseMode;
 	}
 
 	get players() {
@@ -60,6 +61,10 @@ class Game {
 
 	get waitingPlayers() {
 		return this._waitingPlayers;
+	}
+
+	get restartUniverseMode() {
+		return this._restartUniverseMode;
 	}
 
 	addPlayer(player) {
@@ -243,6 +248,28 @@ class Game {
 		this._waitingPlayers = [];
 	}
 
+	getPlayerScore(clientId) {
+		return this._players[clientId].score;
+	}
+
+	changePlayerCards(clientId, cardsList) {
+		if (!cardsList.length) {
+			return;
+		}
+
+		cardsList.forEach(card => {
+			this._players[clientId].removeCard(card);
+			let cardsToAdd = this._startCardNumber - this.getRealPlayerCardsNumber(clientId);
+			while (cardsToAdd-- > 0) {
+				if (this._whiteCards.length === 0) {
+					this._whiteCards = [...this._whiteCardsPlayed].sort(() => Math.random() - 0.5);
+					this._whiteCardsPlayed = [];
+				}
+				this._players[clientId].addNewCard(this._whiteCards.pop());
+			}
+		});
+	}
+
 	#initBlackDeck() {
 		debugMode && console.log('Init black deck');
 		return [
@@ -396,7 +423,7 @@ class Game {
 			"La brutalità della polizia",
 			"Preadolescenti",
 			"Abusi infantili",
-			"Il buco di culo delizioso di Bruno Vespa",
+			"Il delizioso buco di culo di Bruno Vespa",
 			"Il sangue di Cristo",
 			"L'odore delle persone anziane",
 			"Sballarsi veramente tanto",

@@ -20,11 +20,19 @@ export function paintSettingsPage() {
                     
                     <span id="win-number-value"></span>
                     <p id="wins-explanation">Min: 2 | Max: 20</p>
-        
-                    <input type="checkbox" id="white-card-mode" class="mt-4">
-                    <label for="white-card-mode">Modalità carta bianca</label>
-                    <i class="bi bi-question-circle ms-2" data-bs-toggle="tooltip" data-bs-placement="right" title="La modalità carta bianca consente ai giocatori di avere una carta senza testo personalizzabile da utilizzare una sola volta nella partita."></i>
-        
+
+                    <div>
+                        <input type="checkbox" id="white-card-mode" class="mt-4">
+                        <label for="white-card-mode">Modalità carta bianca</label>
+                        <i class="bi bi-question-circle ms-2" data-bs-toggle="tooltip" data-bs-placement="right" title="La modalità carta bianca consente ai giocatori di avere una carta senza testo personalizzabile da utilizzare una sola volta nella partita."></i>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <input type="checkbox" id="restart-universe-mode" class="mt-4">
+                        <label for="white-card-mode">Modalità riavvia universo</label>
+                        <i class="bi bi-question-circle ms-2" data-bs-toggle="tooltip" data-bs-placement="right" title="La modalità riavvia universo consente ai giocatori di spendere un punto per cambiare una o più carte bianche che hanno in mano."></i>
+                    </div>
+
                     <div class="mt-5" id="btn-confirm-settings-container">
                         
                     </div>
