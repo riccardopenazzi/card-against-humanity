@@ -44,6 +44,17 @@ class Player {
             this._playerActive = state;
         }
     }
+
+    removeCard(card) {
+        let index = this._playerCards.findIndex(x => x == card);
+        if (index != -1) {
+            this._playerCards.splice(index, 1);
+        }
+    }
+
+    decrementPlayerScore(quantity) {
+        this._score = this._score - quantity;
+    }
 }
 
 module.exports = Player;

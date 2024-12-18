@@ -19,6 +19,7 @@ let playedCards = [];
 let selectedCard = '';
 let blackCard = '';
 let selectedWinner = '';
+let selectedCardsToChange = [];
 
 function handleMessage(message) {
     debugMode && console.log('Received message: ', message);
@@ -44,6 +45,7 @@ function handleMessage(message) {
         'connection-trouble-managed': handleConnectionTroubleManaged,
         'player-disconnected': handlePlayerDisconnected,
         'player-disconnection-managed': handlePlayerDisconnectedManaged,
+        'change-player-cards': handleChangePlayerCards,
     }
 
     const handler = messageHandler[message.method];
@@ -114,6 +116,22 @@ function handleShowBlackEmptyCard(message) {
 
 function handleReqPlayerCards(message) {
     fillCardList(message.playerCards);
+    if (message.canRestart) {
+        let restartButton = document.createElement('button');
+        restartButton.classList.add('btn-show-choose-winner', 'new-amsterdam-regular', 'mt-2');
+        restartButton.innerText = 'Cambia carte';
+        restartButton.addEventListener('click', () => {
+            restartButton.classList.add('hidden');
+            document.getElementById('btn-confirm-card').innerText = 'Conferma selezione'
+            Array.from(document.getElementsByClassName('selected-card')).forEach(x => {
+                x.classList.remove('selected-card');
+            });
+            sessionStorage.setItem('isChangingCards', true);
+            document.getElementById('btn-confirm-card').removeEventListener('click', btnConfirmCardToPlayAction);
+            document.getElementById('btn-confirm-card').addEventListener('click', btnConfirmCardsToChangeAction);
+        });
+        document.getElementById('frame').appendChild(restartButton);
+    }
 }
 
 function handlePlayCard(message) {
@@ -244,6 +262,16 @@ function handlePlayerDisconnectedManaged(message) {
     hidePopup('disconnection-popup');
 }
 
+function handleChangePlayerCards(message) {
+    let btn = document.getElementById('btn-confirm-card');
+    document.getElementById('frame').innerHTML = '';
+    fillCardList(message.playerCards);
+    sessionStorage.removeItem('isChangingCards');
+    btn.removeEventListener('click', btnConfirmCardsToChangeAction);
+    btn.addEventListener('click', btnConfirmCardToPlayAction);
+    hideLoadingMask();
+}
+
 function requestCardList() {
     const payLoad = {
         'method': 'req-player-cards',
@@ -303,12 +331,23 @@ function createCard(card) {
 }
 
 function handleCardClick(card, cardDiv, internalCardElement) {
-    const selectedCardElement = document.getElementsByClassName('selected-card')[0];
-    if (selectedCardElement) {
-        selectedCardElement.classList.remove('selected-card');
+    if (!sessionStorage.getItem('isChangingCards')) {
+        const selectedCardElement = document.getElementsByClassName('selected-card')[0];
+        if (selectedCardElement) {
+            selectedCardElement.classList.remove('selected-card');
+        }
+        selectedCard = card;
+        cardDiv.classList.add('selected-card');
+    } else {
+        let index = selectedCardsToChange.findIndex(x => x == card);
+        if (index != -1) {
+            cardDiv.classList.remove('selected-card');
+            selectedCardsToChange.splice(index, 1);
+        } else {
+            cardDiv.classList.add('selected-card');
+        selectedCardsToChange.push(card);
+        }
     }
-    selectedCard = card;
-    cardDiv.classList.add('selected-card');
 }
 
 function fillMasterCardList(playedCards) {
@@ -473,40 +512,55 @@ function createConfirmBtn(card, emptyCard = false) {
     btn.classList.add('btn-confirm-card');
     /* btn.innerText = `Conferma ${tutorialActive ? 1 : playedWhiteCardsNumber + 1}° carta`; */
     btn.innerText = `Conferma ${tutorialActive ? '' : requestedWhiteCardsNumber == 1 ? '' : `${(playedWhiteCardsNumber + 1)}° carta`}`;
-    btn.addEventListener('click', e => {
-        if (selectedCard) {
-            let error = false;
-            if (selectedCard === CardVariants.EMPTY_CARD) {
-                if (!document.getElementById('empty-card-input').value) {
-                    document.getElementById('empty-card-error-message').classList.remove('hidden');
-                    error = true;
-                } 
-            }
-            if (!error) {
-                showLoadingMask();
-                const card = {
-                    standard: !isCardSpecial(selectedCard),
-                    cardText: isCardSpecial(selectedCard) ? document.getElementById('empty-card-input').value : selectedCard,
-                }
-                const payLoad = {
-                    'method': 'play-card',
-                    'clientId': sessionStorage.getItem('clientId'),
-                    'gameId': sessionStorage.getItem('gameId'),
-                    // 'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
-                    'card': card,
-                    'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
-                };
-                playedWhiteCardsNumber++;
-                sessionStorage.setItem('playedWhiteCardsNumber', playedWhiteCardsNumber);
-                if (requestedWhiteCardsNumber - playedWhiteCardsNumber > 0) {
-                    btn.innerText = 'Conferma seconda carta';
-                }
-                /* sessionStorage.setItem('hasPlayedCard', true); */
-                send(payLoad);
-            }
-        }
-    });
+    console.log('aggiuugo')
+    btn.addEventListener('click', btnConfirmCardToPlayAction);
+    console.log(btn)
     return btn;
+}
+
+function btnConfirmCardToPlayAction() {
+    console.log('Premuto')
+    let playedWhiteCardsNumber = parseInt(sessionStorage.getItem('playedWhiteCardsNumber'));
+    let requestedWhiteCardsNumber = parseInt(sessionStorage.getItem('requestedWhiteCardsNumber'));
+    if (selectedCard) {
+        let error = false;
+        if (selectedCard === CardVariants.EMPTY_CARD) {
+            if (!document.getElementById('empty-card-input').value) {
+                document.getElementById('empty-card-error-message').classList.remove('hidden');
+                error = true;
+            } 
+        }
+        if (!error) {
+            showLoadingMask();
+            const card = {
+                standard: !isCardSpecial(selectedCard),
+                cardText: isCardSpecial(selectedCard) ? document.getElementById('empty-card-input').value : selectedCard,
+            }
+            const payLoad = {
+                'method': 'play-card',
+                'clientId': sessionStorage.getItem('clientId'),
+                'gameId': sessionStorage.getItem('gameId'),
+                // 'cardText': selectedCard === CardVariants.EMPTY_CARD ? document.getElementById('empty-card-input').value : selectedCard,
+                'card': card,
+                'isEmptyCard': selectedCard === CardVariants.EMPTY_CARD,
+            };
+            playedWhiteCardsNumber++;
+            sessionStorage.setItem('playedWhiteCardsNumber', playedWhiteCardsNumber);
+            /* sessionStorage.setItem('hasPlayedCard', true); */
+            send(payLoad);
+        }
+    }
+}
+
+function btnConfirmCardsToChangeAction() {
+    showLoadingMask();
+    const payLoad = {
+        'method': 'change-player-cards',
+        'cardsList': selectedCardsToChange,
+        'clientId': sessionStorage.getItem('clientId'),
+        'gameId': sessionStorage.getItem('gameId'),
+    }
+    send(payLoad);
 }
 
 function createEmptyCardErrorMessage() {

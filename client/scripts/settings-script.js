@@ -8,6 +8,7 @@ let cardsValueIndicator = document.getElementById('player-cards-value');
 let winsValueIndicator = document.getElementById('win-number-value');
 let btnConfirmSettings;
 let checkboxWhiteCardMode = document.getElementById('white-card-mode');
+let checkboxRestartUniversedMode = document.getElementById('restart-universe-mode');
 
 function handleMessage(message) {
     console.log('Received message:', message);
@@ -36,6 +37,7 @@ function handleConnect(message) {
         playersCards: playersCard,
         winsNumber: winsNumber,
         whiteCardMode: checkboxWhiteCardMode.checked,
+        restartUniverseMode: checkboxRestartUniversedMode.checked,
     };
     send(payload);
 }

@@ -23,6 +23,7 @@ const MessageTypes = Object.freeze({
 	CONNECTION_TROUBLE_MANAGED: 'connection-trouble-managed',
 	EXEC_POINT_COUNT: 'exec-point-count',
 	SHOW_BLACK_EMPTY_CARD: 'show-black-empty-card',
+	CHANGE_PLAYER_CARDS: 'change-player-cards',
 });
 
 const CardVariants = Object.freeze({

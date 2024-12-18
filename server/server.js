@@ -63,6 +63,7 @@ const eventManager = {
     [MessageTypes.VOTE_SKIP_SURVEY]: handleVoteSkipSurvey,
 	[MessageTypes.EXEC_POINT_COUNT]: handleExecPointCount,
 	[MessageTypes.SHOW_BLACK_EMPTY_CARD]: handleShowBlackEmptyCard,
+	[MessageTypes.CHANGE_PLAYER_CARDS]: handleChangePlayerCards,
 };
 
 wsServer.on("request", request => {
@@ -137,6 +138,7 @@ function handleCreateGame(message, connection) {
 	vars.startCardNumber = message.playersCards;
 	vars.targetScore = message.winsNumber;
 	vars.whiteCardMode = message.whiteCardMode;
+	vars.restartUniverseMode = message.restartUniverseMode;
 	let gameId = createGame(vars);
 	const payLoad = {
 		'method': 'create',
@@ -278,6 +280,7 @@ function handleRequestPlayerCards(message, connection) {
 	const payLoad = {
 		'method': 'req-player-cards',
 		'playerCards': playerCards,
+		'canRestart': games[gameId].restartUniverseMode ? games[gameId].getPlayerScore(clientId) > 0 : false,
 	}
 	sendMessage(clientId, payLoad, connection);
 }
@@ -458,6 +461,18 @@ function handleVoteSkipSurvey(message, connection) {
 		sendBroadcastMessage(gameId, payLoad, connection);
 	}
 }
+
+function handleChangePlayerCards(message, connection) {
+	games[message.gameId].changePlayerCards(message.clientId, message.cardsList);
+	games[message.gameId].players[message.clientId].decrementPlayerScore(1);
+	const payLoad = {
+		'method': 'change-player-cards',
+		'playerCards': games[message.gameId].players[message.clientId].playerCards,
+		'canRestart': false,
+	}
+	sendMessage(message.clientId, payLoad, connection);
+}
+
 /* End functions */
 
 const periodicallyCheck = setInterval(checkClientsConnected, 4000);
