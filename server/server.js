@@ -62,6 +62,7 @@ const eventManager = {
     [MessageTypes.REQ_BLACK_CARD_CHANGE]: handleRequestBlackCardChange,
     [MessageTypes.VOTE_SKIP_SURVEY]: handleVoteSkipSurvey,
 	[MessageTypes.EXEC_POINT_COUNT]: handleExecPointCount,
+	[MessageTypes.SHOW_BLACK_EMPTY_CARD]: handleShowBlackEmptyCard,
 };
 
 wsServer.on("request", request => {
@@ -225,6 +226,25 @@ function handleStartGame(message, connection) {
 	sendBroadcastMessage(gameId, payLoad, connection);
 }
 
+function handleShowBlackEmptyCard(message, connection) {
+	let clientId = message.clientId;
+	if (!checkStableConnection(clientId)) {
+		const payLoad = {
+			'method': 'invalid-clientId',
+		}
+		connection.send(JSON.stringify(payLoad));
+		return
+	}
+	let gameId = message.gameId;
+	games[gameId].updateGameState(GameState.CHOOSING_WHITE_CARDS);
+	const payLoad = {
+		'method': 'show-black-empty-card',
+		'mancheNumber': games[gameId].manches.length,
+		'blackCard': games[gameId].currentManche.blackCard,
+	}
+	sendMessage(clientId, payLoad, connection);
+}
+
 function handleStartManche(message, connection) {
 	let clientId = message.clientId;
 	if (!checkStableConnection(clientId)) {
@@ -236,14 +256,10 @@ function handleStartManche(message, connection) {
 	}
 	let gameId = message.gameId;
 	games[gameId].updateGameState(GameState.CHOOSING_WHITE_CARDS);
-	let allPlayersCompleted = games[gameId].checkAllPlayersCompletedManche();
 	const payLoad = {
 		'method': 'start-manche',
-		'blackCard': games[gameId].currentManche.blackCard,
-		'mancheNumber': games[gameId].manches.length,
 		'masterId': games[gameId].currentManche.master,
-		/* 'allPlayersCompleted': allPlayersCompleted,
-		'playedCards': games[gameId].currentManche.playedWhiteCards, */
+		'blackCard': games[gameId].currentManche.blackCard,
 	}
 	sendMessage(clientId, payLoad, connection);
 }

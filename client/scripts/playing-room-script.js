@@ -25,6 +25,7 @@ function handleMessage(message) {
 
     const messageHandler = {
         'start-manche': handleStartManche,
+        'show-black-empty-card': handleShowBlackEmptyCard,
         'req-player-cards': handleReqPlayerCards,
         'play-card': handlePlayCard,
         'show-played-cards': handleShowPlayedCards,
@@ -51,17 +52,17 @@ function handleMessage(message) {
 
 function handleStartManche(message) {
     sessionStorage.removeItem('hasVoted');
-    document.getElementById('title').innerHTML = '';
-    document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
+    document.getElementById('standard-frame').classList.remove('hidden');
+    document.getElementById('temp-div').remove();
     document.getElementById('black-card').innerText = message.blackCard;
-    blackCard = message.blackCard;
     const isMaster = (message.masterId === sessionStorage.getItem('clientId'));
     sessionStorage.setItem('master', isMaster);
     if (isMaster) {
+        document.getElementById('internal-skip-card-frame').classList.remove('hidden');
         paintMessage('Aspetta che i giocatori scelgano la propria carta');
         hideLoadingMask();
     } else {
-        internalSkipCardFrame = document.getElementById('internal-skip-card-frame')
+        internalSkipCardFrame = document.getElementById('internal-skip-card-frame');
         internalSkipCardFrame.innerHTML = '';
         if (!sessionStorage.getItem('playedWhiteCardsNumber')) {
             sessionStorage.setItem('playedWhiteCardsNumber', 0);
@@ -76,6 +77,39 @@ function handleStartManche(message) {
         }
         hideLoadingMask();
     }
+}
+
+function handleShowBlackEmptyCard(message) {
+    document.getElementById('title').innerHTML = '';
+    document.getElementById('title').innerHTML = 'Manche ' + message.mancheNumber;
+    blackCard = message.blackCard;
+    let card = createBlackCard(undefined, undefined, undefined, false);
+    document.getElementById('standard-frame').classList.add('hidden');
+    document.getElementById('internal-skip-card-frame').classList.add('hidden');
+    let tempDiv = document.createElement('div');
+    tempDiv.setAttribute('id', 'temp-div');
+    //tempDiv.classList.add('black-card-empty-container');
+    tempDiv.classList.add('col-12', 'd-flex', 'flex-column', 'align-items-center');
+    let p = document.createElement('p');
+    p.classList.add('new-amsterdam-regular', 'mb-1', 'fs-4');
+    p.innerText = 'Ecco la carta di questa manche';
+    tempDiv.appendChild(p);
+    tempDiv.appendChild(card);
+    let confirmButton = document.createElement('button');
+    confirmButton.classList.add('btn-show-choose-winner', 'new-amsterdam-regular', 'mt-4');
+    confirmButton.innerHTML = 'Gioca';
+    confirmButton.addEventListener('click', () => {
+        showLoadingMask();
+        const payLoad = {
+            'method': 'start-manche',
+            'clientId': sessionStorage.getItem('clientId'),
+            'gameId': sessionStorage.getItem('gameId'),
+        }
+        send(payLoad);
+    })
+    tempDiv.appendChild(confirmButton);
+    document.getElementById('main-frame').appendChild(tempDiv);
+    hideLoadingMask();
 }
 
 function handleReqPlayerCards(message) {
@@ -305,20 +339,21 @@ function showSingleCard(card) {
     }, 300);
 }
 
-function createBlackCard(card, singleCard = false, clientId) {
+function createBlackCard(card, singleCard = false, clientId, replaceUnderscore = true) {
     let cardText = blackCard;
-    card.forEach(card => {
-        let sentenceTransformed = modifyCardText(card.cardText, cardText);
-        let underscoreIndex = cardText.indexOf("_");
-        cardText = cardText.slice(0, underscoreIndex) + `<span class="underline-text">${sentenceTransformed}</span>` + " " + cardText.slice(underscoreIndex + 1);
-    })
-    ;
+    if (replaceUnderscore) {
+        card.forEach(card => {
+            let sentenceTransformed = modifyCardText(card.cardText, cardText);
+            let underscoreIndex = cardText.indexOf("_");
+            cardText = cardText.slice(0, underscoreIndex) + `<span class="underline-text">${sentenceTransformed}</span>` + " " + cardText.slice(underscoreIndex + 1);
+        })
+        ;
+        cardText = cardText.charAt(0).toUpperCase() + cardText.slice(1);
+    }
    /*  let cardTextTranformed = modifyCardText(card);
     console.log(cardTextTranformed);
     let cardText = blackCard.replace(/_/g, `<span class="underline-text">${cardTextTranformed}</span>`);
     console.log(cardText); */
-    cardText = cardText.charAt(0).toUpperCase() + cardText.slice(1);
-    console.log(cardText);
     let cardDiv = document.createElement('div');
     cardDiv.classList.add('card', 'black-card');
     singleCard && cardDiv.classList.add('single-card');
@@ -329,9 +364,7 @@ function createBlackCard(card, singleCard = false, clientId) {
     bottomDiv.appendChild(createCardSign());
     cardDiv.appendChild(textDiv);
     cardDiv.appendChild(bottomDiv);
-    console.log('black')
-    console.log(clientId);
-    !singleCard && cardDiv.addEventListener('click', () => handleBlackCardClick(clientId, cardDiv));
+    (!singleCard && replaceUnderscore) && cardDiv.addEventListener('click', () => handleBlackCardClick(clientId, cardDiv));
     return cardDiv;
 }
 
@@ -400,7 +433,7 @@ function showSkipCardSurvey() {
     btnContainer.classList.add('d-flex', 'justify-content-center', 'gap-2');
 
     let btnConfirm = document.createElement('button');
-    btnConfirm.classList.add('btn-confirm', 'btn', 'btn-primary', 'col-12');
+    btnConfirm.classList.add('btn-success', 'btn', 'col-12');
     btnConfirm.innerText = 'Si';
     btnConfirm.addEventListener('click', () => {
         const payLoad = {
@@ -413,7 +446,7 @@ function showSkipCardSurvey() {
     });
 
     let btnCancel = document.createElement('button');
-    btnCancel.classList.add('btn-cancel', 'btn', 'btn-secondary', 'col-12');
+    btnCancel.classList.add('btn-danger', 'btn', 'col-12');
     btnCancel.innerText = 'No';
     btnCancel.addEventListener('click', () => {
         const payLoad = {
@@ -731,7 +764,7 @@ function startScript() {
     const tutorialActive = sessionStorage.getItem('tutorialActive');
     if (!tutorialActive) {
         const payLoad = {
-            'method': 'start-manche',
+            'method': 'show-black-empty-card',
             'clientId': sessionStorage.getItem('clientId'),
             'gameId': sessionStorage.getItem('gameId'),
         }

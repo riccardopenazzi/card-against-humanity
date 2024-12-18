@@ -396,7 +396,7 @@ class Game {
 			"La brutalità della polizia",
 			"Preadolescenti",
 			"Abusi infantili",
-			"Il buco di culo delizioso di Bruno Vespa",
+			"Il delizioso buco di culo di Bruno Vespa",
 			"Il sangue di Cristo",
 			"L'odore delle persone anziane",
 			"Sballarsi veramente tanto",
