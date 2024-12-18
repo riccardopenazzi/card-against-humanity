@@ -188,3 +188,9 @@ textarea {
 .empty-card-error-message {
     color: red;
 }
+
+.black-card-empty-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}

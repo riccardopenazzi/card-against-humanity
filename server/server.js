@@ -62,6 +62,8 @@ const eventManager = {
     [MessageTypes.REQ_BLACK_CARD_CHANGE]: handleRequestBlackCardChange,
     [MessageTypes.VOTE_SKIP_SURVEY]: handleVoteSkipSurvey,
 	[MessageTypes.EXEC_POINT_COUNT]: handleExecPointCount,
+	[MessageTypes.SHOW_BLACK_EMPTY_CARD]: handleShowBlackEmptyCard,
+	[MessageTypes.CHANGE_PLAYER_CARDS]: handleChangePlayerCards,
 };
 
 wsServer.on("request", request => {
@@ -136,6 +138,7 @@ function handleCreateGame(message, connection) {
 	vars.startCardNumber = message.playersCards;
 	vars.targetScore = message.winsNumber;
 	vars.whiteCardMode = message.whiteCardMode;
+	vars.restartUniverseMode = message.restartUniverseMode;
 	let gameId = createGame(vars);
 	const payLoad = {
 		'method': 'create',
@@ -225,6 +228,25 @@ function handleStartGame(message, connection) {
 	sendBroadcastMessage(gameId, payLoad, connection);
 }
 
+function handleShowBlackEmptyCard(message, connection) {
+	let clientId = message.clientId;
+	if (!checkStableConnection(clientId)) {
+		const payLoad = {
+			'method': 'invalid-clientId',
+		}
+		connection.send(JSON.stringify(payLoad));
+		return
+	}
+	let gameId = message.gameId;
+	games[gameId].updateGameState(GameState.CHOOSING_WHITE_CARDS);
+	const payLoad = {
+		'method': 'show-black-empty-card',
+		'mancheNumber': games[gameId].manches.length,
+		'blackCard': games[gameId].currentManche.blackCard,
+	}
+	sendMessage(clientId, payLoad, connection);
+}
+
 function handleStartManche(message, connection) {
 	let clientId = message.clientId;
 	if (!checkStableConnection(clientId)) {
@@ -236,14 +258,10 @@ function handleStartManche(message, connection) {
 	}
 	let gameId = message.gameId;
 	games[gameId].updateGameState(GameState.CHOOSING_WHITE_CARDS);
-	let allPlayersCompleted = games[gameId].checkAllPlayersCompletedManche();
 	const payLoad = {
 		'method': 'start-manche',
-		'blackCard': games[gameId].currentManche.blackCard,
-		'mancheNumber': games[gameId].manches.length,
 		'masterId': games[gameId].currentManche.master,
-		/* 'allPlayersCompleted': allPlayersCompleted,
-		'playedCards': games[gameId].currentManche.playedWhiteCards, */
+		'blackCard': games[gameId].currentManche.blackCard,
 	}
 	sendMessage(clientId, payLoad, connection);
 }
@@ -262,6 +280,7 @@ function handleRequestPlayerCards(message, connection) {
 	const payLoad = {
 		'method': 'req-player-cards',
 		'playerCards': playerCards,
+		'canRestart': games[gameId].restartUniverseMode ? games[gameId].getPlayerScore(clientId) > 0 : false,
 	}
 	sendMessage(clientId, payLoad, connection);
 }
@@ -442,6 +461,18 @@ function handleVoteSkipSurvey(message, connection) {
 		sendBroadcastMessage(gameId, payLoad, connection);
 	}
 }
+
+function handleChangePlayerCards(message, connection) {
+	games[message.gameId].changePlayerCards(message.clientId, message.cardsList);
+	games[message.gameId].players[message.clientId].decrementPlayerScore(1);
+	const payLoad = {
+		'method': 'change-player-cards',
+		'playerCards': games[message.gameId].players[message.clientId].playerCards,
+		'canRestart': false,
+	}
+	sendMessage(message.clientId, payLoad, connection);
+}
+
 /* End functions */
 
 const periodicallyCheck = setInterval(checkClientsConnected, 4000);
