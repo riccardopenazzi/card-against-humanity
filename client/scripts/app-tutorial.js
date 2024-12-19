@@ -103,6 +103,34 @@ function startTutorial() {
     });
 
     tour.addStep({
+        title: 'Modalità carta bianca',
+        text: 'Se selezioni questa modalità ogni giocatore avrà una carta bianca da completare a piacimento utilizzabile una sola volta per tutta la partita.',
+        attachTo: { element: '#white-card-mode', on: 'bottom' },
+        buttons: [
+            {
+                text: 'Prossimo',
+                action: () => {
+                    tour.next();
+                },
+            },
+        ],
+    });
+
+    tour.addStep({
+        title: 'Modalità riavvia universo',
+        text: 'Se selezioni questa modalità ogni giocatore potrà decidere di cambiare una o più carte che ha in mano spendendo un punto.',
+        attachTo: { element: '#restart-universe-mode', on: 'bottom' },
+        buttons: [
+            {
+                text: 'Prossimo',
+                action: () => {
+                    tour.next();
+                },
+            },
+        ],
+    });
+
+    tour.addStep({
         title: 'Conferma impostazioni',
         text: 'Una volta impostate le tue preferenze usa questo pulsante per confermarle e andare alla waiting room',
         attachTo: { element: '#btn-confirm-settings-container', on: 'bottom' },

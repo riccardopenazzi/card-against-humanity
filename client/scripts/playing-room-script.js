@@ -118,10 +118,11 @@ function handleReqPlayerCards(message) {
     fillCardList(message.playerCards);
     if (message.canRestart) {
         let restartButton = document.createElement('button');
-        restartButton.classList.add('btn-show-choose-winner', 'new-amsterdam-regular', 'mt-2');
+        restartButton.classList.add('btn-show-choose-winner', 'new-amsterdam-regular', 'd-block', 'btn-change-cards');
         restartButton.innerText = 'Cambia carte';
         restartButton.addEventListener('click', () => {
             restartButton.classList.add('hidden');
+            document.getElementsByClassName('empty-card')[0]?.classList.add('hidden');
             document.getElementById('btn-confirm-card').innerText = 'Conferma selezione'
             Array.from(document.getElementsByClassName('selected-card')).forEach(x => {
                 x.classList.remove('selected-card');
@@ -269,6 +270,7 @@ function handleChangePlayerCards(message) {
     sessionStorage.removeItem('isChangingCards');
     btn.removeEventListener('click', btnConfirmCardsToChangeAction);
     btn.addEventListener('click', btnConfirmCardToPlayAction);
+    document.getElementsByClassName('empty-card')[0]?.classList.remove('hidden');
     hideLoadingMask();
 }
 
@@ -509,7 +511,7 @@ function createConfirmBtn(card, emptyCard = false) {
     let requestedWhiteCardsNumber = parseInt(sessionStorage.getItem('requestedWhiteCardsNumber'));
     let playedWhiteCardsNumber = parseInt(sessionStorage.getItem('playedWhiteCardsNumber'));
     btn.setAttribute('id', 'btn-confirm-card');
-    btn.classList.add('btn-confirm-card');
+    btn.classList.add('btn-confirm-card', 'new-amsterdam-regular');
     /* btn.innerText = `Conferma ${tutorialActive ? 1 : playedWhiteCardsNumber + 1}° carta`; */
     btn.innerText = `Conferma ${tutorialActive ? '' : requestedWhiteCardsNumber == 1 ? '' : `${(playedWhiteCardsNumber + 1)}° carta`}`;
     console.log('aggiuugo')

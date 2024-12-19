@@ -88,8 +88,6 @@ textarea {
 }
 
 .btn-winning-card {
-    padding: 10px;
-    border-radius: 8px;
     background-color: #84e08c;
 }
 
@@ -193,4 +191,12 @@ textarea {
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+
+.btn-confirm-card {
+    padding: 12px; /* so che è ripetuto ma tocca fare così, non ho voglia di indagare ora */
+}
+
+.btn-change-cards {
+    justify-self: center;
 }

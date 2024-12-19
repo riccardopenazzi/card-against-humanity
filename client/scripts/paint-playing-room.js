@@ -9,7 +9,7 @@ export function paintPlayingRoom() {
         /* I pulsanti per 'prossima carta' e 'vai alla scelta vincitore' sono inseriti da js dopo il div 'single-card-frame' */
         const playingRoomContent = `
             <div class="row text-center">
-            <h1 class="new-amsterdam-regular text-center mt-3 mb-3" id="title">Manche </h1>
+            <h1 class="new-amsterdam-regular text-center mt-1 mb-1" id="title">Manche </h1>
             <div class="col-12" id="main-frame">
                 
                 <div class="row">
